@@ -8,7 +8,7 @@
  ** This library is free software; you can redistribute it and/or
  ** modify it under the terms of the GNU Lesser General Public
  ** License as published by the Free Software Foundation; either
- ** version 2.1 of the License, or (at your option) any later version.
+ ** version 3 of the License, or (at your option) any later version.
  **
  ** This library is distributed in the hope that it will be useful,
  ** but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -151,6 +151,18 @@ namespace QLogger
              * @return The string with the name of the log level.
              */
             static QString levelToText(const LogLevel &level);
+            /**
+             * @brief This method creates a QLoogerWriter that stores the name of the file and the log
+             * level assigned to it. Here is added to the map the different modules assigned to each
+             * log file. The method returns <em>false</em> if a module is configured to be stored in
+             * more than one file.
+             *
+             * @param fileDest The file name and path to print logs.
+             * @param module The module that will be stored in the file.
+             * @param level The maximum level allowed.
+             * @return Returns true if any error have been done.
+             */
+            bool addDestination(const QString &fileDest, const QString &module, LogLevel level);
             /**
              * @brief This method creates a QLoogerWriter that stores the name of the file and the log
              * level assigned to it. Here is added to the map the different modules assigned to each

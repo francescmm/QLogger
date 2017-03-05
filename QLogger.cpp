@@ -67,11 +67,17 @@ namespace QLogger
     }
 
     //QLoggerManager
-    QLoggerManager * QLoggerManager::INSTANCE = NULL;
+    QLoggerManager * QLoggerManager::INSTANCE = nullptr;
 
     QLoggerManager::QLoggerManager() : QThread(), mutex(QMutex::Recursive)
     {
         start();
+
+        QDir dir(QDir::currentPath());
+        if (!dir.exists("logs"))
+            dir.mkdir("logs");
+
+        dir.setCurrent(QDir::currentPath() + "/logs");
     }
 
     QLoggerManager * QLoggerManager::getInstance()
@@ -96,16 +102,28 @@ namespace QLogger
         }
     }
 
+    bool QLoggerManager::addDestination(const QString &fileDest, const QString &module, LogLevel level)
+    {
+        if (!moduleDest.contains(module))
+        {
+            auto log = new QLoggerWriter(fileDest,level);
+            return moduleDest.insert(module, log);
+        }
+
+        return false;
+    }
+
     bool QLoggerManager::addDestination(const QString &fileDest, const QStringList &modules, LogLevel level)
     {
-        QLoggerWriter *log;
-        for (const QString &module: modules)
+        QLoggerWriter *log = nullptr;
+        auto allAdded = true;
+
+        foreach (QString module, modules)
         {
             if (!moduleDest.contains(module))
             {
                 log = new QLoggerWriter(fileDest,level);
-                moduleDest.insert(module, log);
-                return true;
+                allAdded &= moduleDest.insert(module, log);
             }
         }
         return false;
@@ -125,25 +143,20 @@ namespace QLogger
 
     void QLoggerWriter::write(const QString &module, const QString &message)
     {
-        QString _fileName = m_fileDestination;
-
-        int MAX_SIZE = 1024 * 1024;
-
-        QDir dir(QDir::currentPath());
-        if (!dir.exists("logs"))
-            dir.mkdir("logs");
+        auto _fileName = m_fileDestination;
+        auto MAX_SIZE = 1024 * 1024;
+        auto toRemove = _fileName.section('.',-1);
+        auto fileNameAux = _fileName.left(_fileName.size() - toRemove.size()-1);
+        auto renamed = false;
+        auto newName = fileNameAux + "_%1__%2.log";
 
         QFile file(_fileName);
-        QString toRemove = _fileName.section('.', -1);
-        QString fileNameAux = _fileName.left(_fileName.size() - toRemove.size()-1);
-        bool renamed = false;
-        QString newName = fileNameAux + "_%1__%2.log";
 
         //Renomenem l'arxiu si està ple
         if (file.size() >= MAX_SIZE)
         {
             //Creem un fixer nou
-            QDateTime currentTime = QDateTime::currentDateTime();
+            auto currentTime = QDateTime::currentDateTime();
             newName = newName.arg(currentTime.date().toString("dd_MM_yy")).arg(currentTime.time().toString("hh_mm_ss"));
             renamed = file.rename(_fileName, newName);
 
@@ -153,13 +166,13 @@ namespace QLogger
         if (file.open(QIODevice::ReadWrite | QIODevice::Text | QIODevice::Append))
         {
             QTextStream out(&file);
-            QString dtFormat = QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss.zzz");
+            auto dtFormat = QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss.zzz");
 
             if (renamed)
                 out << QString("%1 - Previous log %2\n").arg(dtFormat).arg(newName);
 
-            QString logLevel = QLoggerManager::levelToText(m_level);
-            QString text = QString("[%1] [%2] {%3} %4\n").arg(dtFormat).arg(logLevel).arg(module).arg(message);
+            auto logLevel = QLoggerManager::levelToText(m_level);
+            auto text = QString("[%1] [%2] {%3} %4\n").arg(dtFormat).arg(logLevel).arg(module).arg(message);
             out << text;
             file.close();
         }
