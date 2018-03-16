@@ -98,8 +98,9 @@ namespace QLogger
             case LogLevel::Warning: return "Warning";
             case LogLevel::Error:   return "Error";
             case LogLevel::Fatal:   return "Fatal";
-            default:                return QString();
         }
+
+        return QString();
     }
 
     bool QLoggerManager::addDestination(const QString &fileDest, const QString &module, LogLevel level)
@@ -107,7 +108,9 @@ namespace QLogger
         if (!moduleDest.contains(module))
         {
             auto log = new QLoggerWriter(fileDest,level);
-            return moduleDest.insert(module, log);
+            moduleDest.insert(module, log);
+
+            return true;
         }
 
         return false;
@@ -115,24 +118,25 @@ namespace QLogger
 
     bool QLoggerManager::addDestination(const QString &fileDest, const QStringList &modules, LogLevel level)
     {
-        QLoggerWriter *log = nullptr;
-        auto allAdded = true;
+        bool allAdded = false;
 
         foreach (QString module, modules)
         {
             if (!moduleDest.contains(module))
             {
-                log = new QLoggerWriter(fileDest,level);
-                allAdded &= moduleDest.insert(module, log);
+                auto log = new QLoggerWriter(fileDest,level);
+                moduleDest.insert(module, log);
+                allAdded = true;
             }
         }
-        return false;
+
+        return allAdded;
     }
 
     void QLoggerManager::closeLogger()
     {
-        exit(0);
-        deleteLater();
+       deleteLater();
+       exit(0);
     }
 
     QLoggerWriter::QLoggerWriter(const QString &fileDestination, LogLevel level)
