@@ -5,7 +5,7 @@
 
 /****************************************************************************************
  ** QLogger is a library to register and print logs into a file.
- ** Copyright (C) 2016  Francesc Martinez <es.linkedin.com/in/cescmm/en>
+ ** Copyright (C) 2018  Francesc Martinez <es.linkedin.com/in/cescmm/en>
  **
  ** This library is free software; you can redistribute it and/or
  ** modify it under the terms of the GNU Lesser General Public
@@ -56,11 +56,11 @@ namespace QLogger
 
     void QLog_(const QString &module, LogLevel level, const QString &message)
     {
-        QLoggerManager *manager = QLoggerManager::getInstance();
+        const auto manager = QLoggerManager::getInstance();
 
         QMutexLocker(&manager->mutex);
 
-        QLoggerWriter *logWriter = manager->getLogWriter(module);
+        const auto logWriter = manager->getLogWriter(module);
 
         if (logWriter and logWriter->getLevel() <= level)
                 logWriter->write(module,message);
@@ -74,6 +74,7 @@ namespace QLogger
         start();
 
         QDir dir(QDir::currentPath());
+
         if (!dir.exists("logs"))
             dir.mkdir("logs");
 
@@ -107,7 +108,7 @@ namespace QLogger
     {
         if (!moduleDest.contains(module))
         {
-            auto log = new QLoggerWriter(fileDest,level);
+            const auto log = new QLoggerWriter(fileDest,level);
             moduleDest.insert(module, log);
 
             return true;
@@ -120,11 +121,11 @@ namespace QLogger
     {
         bool allAdded = false;
 
-        foreach (QString module, modules)
+        for (const auto &module : modules)
         {
             if (!moduleDest.contains(module))
             {
-                auto log = new QLoggerWriter(fileDest,level);
+                const auto log = new QLoggerWriter(fileDest,level);
                 moduleDest.insert(module, log);
                 allAdded = true;
             }
@@ -141,42 +142,50 @@ namespace QLogger
 
     QLoggerWriter::QLoggerWriter(const QString &fileDestination, LogLevel level)
     {
-        m_fileDestination = fileDestination;
+        mFileDestination = fileDestination;
         m_level = level;
+    }
+
+    QString QLoggerWriter::renameFileIfFull()
+    {
+        const auto MAX_SIZE = 1024 * 1024;
+        const auto toRemove = mFileDestination.section('.',-1);
+        const auto fileNameAux = mFileDestination.left(mFileDestination.size() - toRemove.size()-1);
+        auto renamed = false;
+        auto newName = fileNameAux + "_%1__%2.log";
+
+        QFile file(mFileDestination);
+
+        //Renaming file if it's full
+        if (file.size() >= MAX_SIZE)
+        {
+            //Creem un fixer nou
+            const auto currentTime = QDateTime::currentDateTime();
+            newName = newName.arg(currentTime.date().toString("dd_MM_yy")).arg(currentTime.time().toString("hh_mm_ss"));
+            renamed = file.rename(mFileDestination, newName);
+
+        }
+
+        return renamed ? newName : "";
     }
 
     void QLoggerWriter::write(const QString &module, const QString &message)
     {
-        auto _fileName = m_fileDestination;
-        auto MAX_SIZE = 1024 * 1024;
-        auto toRemove = _fileName.section('.',-1);
-        auto fileNameAux = _fileName.left(_fileName.size() - toRemove.size()-1);
-        auto renamed = false;
-        auto newName = fileNameAux + "_%1__%2.log";
+        QFile file(mFileDestination);
 
-        QFile file(_fileName);
+        const auto newName = renameFileIfFull ();
 
-        //Renomenem l'arxiu si està ple
-        if (file.size() >= MAX_SIZE)
-        {
-            //Creem un fixer nou
-            auto currentTime = QDateTime::currentDateTime();
-            newName = newName.arg(currentTime.date().toString("dd_MM_yy")).arg(currentTime.time().toString("hh_mm_ss"));
-            renamed = file.rename(_fileName, newName);
-
-        }
-
-        file.setFileName(_fileName);
         if (file.open(QIODevice::ReadWrite | QIODevice::Text | QIODevice::Append))
         {
             QTextStream out(&file);
-            auto dtFormat = QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss.zzz");
+            const auto dtFormat = QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss.zzz");
 
-            if (renamed)
+            if (!newName.isEmpty())
                 out << QString("%1 - Previous log %2\n").arg(dtFormat).arg(newName);
 
-            auto logLevel = QLoggerManager::levelToText(m_level);
-            auto text = QString("[%1] [%2] {%3} %4\n").arg(dtFormat).arg(logLevel).arg(module).arg(message);
+            const auto logLevel = QLoggerManager::levelToText(m_level);
+            const auto text = QString("[%1] [%2] {%3} %4\n").arg(dtFormat).arg(logLevel).arg(module).arg(message);
+
             out << text;
             file.close();
         }

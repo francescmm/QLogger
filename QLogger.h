@@ -3,7 +3,7 @@
 
 /****************************************************************************************
  ** QLogger is a library to register and print logs into a file.
- ** Copyright (C) 2016  Francesc Martinez <es.linkedin.com/in/cescmm/en>
+ ** Copyright (C) 2019  Francesc Martinez <es.linkedin.com/in/cescmm/en>
  **
  ** This library is free software; you can redistribute it and/or
  ** modify it under the terms of the GNU Lesser General Public
@@ -127,11 +127,13 @@ namespace QLogger
             /**
              * @brief Path and name of the file that will store the logs.
              */
-            QString m_fileDestination;
+            QString mFileDestination;
             /**
              * @brief Maximum log level allowed for the file.
              */
             LogLevel m_level;
+
+            QString renameFileIfFull();
     };
 
     /**
