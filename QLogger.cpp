@@ -77,8 +77,6 @@ namespace QLogger
 
         if (!dir.exists("logs"))
             dir.mkdir("logs");
-
-        dir.setCurrent(QDir::currentPath() + "/logs");
     }
 
     QLoggerManager * QLoggerManager::getInstance()
@@ -142,7 +140,7 @@ namespace QLogger
 
     QLoggerWriter::QLoggerWriter(const QString &fileDestination, LogLevel level)
     {
-        mFileDestination = fileDestination;
+        mFileDestination = "logs/" + fileDestination;
         m_level = level;
     }
 
