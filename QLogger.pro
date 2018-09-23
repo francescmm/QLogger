@@ -8,4 +8,4 @@ SOURCES += QLogger.cpp
 
 HEADERS += QLogger.h
 
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++14
