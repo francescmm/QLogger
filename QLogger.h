@@ -120,8 +120,9 @@ namespace QLogger
              *
              * @param module The module that corresponds to the message.
              * @param message The message log.
+             * @param messageLogLevel The log level of the message
              */
-            void write(const QString &module, const QString &message);
+            void write(const QString &module, const QString &message, const LogLevel &messageLogLevel);
 
         private:
             /**
