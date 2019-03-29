@@ -63,7 +63,7 @@ namespace QLogger
         const auto logWriter = manager->getLogWriter(module);
 
         if (logWriter and logWriter->getLevel() <= level)
-                logWriter->write(module,message);
+                logWriter->write(module,message, level);
     }
 
     //QLoggerManager
@@ -167,7 +167,7 @@ namespace QLogger
         return renamed ? newName : "";
     }
 
-    void QLoggerWriter::write(const QString &module, const QString &message)
+    void QLoggerWriter::write(const QString &module, const QString &message, const LogLevel &messageLogLevel)
     {
         QFile file(mFileDestination);
 
@@ -181,7 +181,7 @@ namespace QLogger
             if (!newName.isEmpty())
                 out << QString("%1 - Previous log %2\n").arg(dtFormat).arg(newName);
 
-            const auto logLevel = QLoggerManager::levelToText(m_level);
+            const auto logLevel = QLoggerManager::levelToText(messageLogLevel);
             const auto text = QString("[%1] [%2] {%3} %4\n").arg(dtFormat).arg(logLevel).arg(module).arg(message);
 
             out << text;
