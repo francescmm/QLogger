@@ -1,3 +1,3 @@
-SOURCES += QLogger.cpp
+SOURCES += $$PWD/QLogger.cpp
 
-HEADERS += QLogger.h
+HEADERS += $$PWD/QLogger.h
