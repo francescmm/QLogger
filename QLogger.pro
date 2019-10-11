@@ -4,8 +4,6 @@ TARGET = QLogger
 TEMPLATE = lib
 CONFIG += static
 
-SOURCES += QLogger.cpp
-
-HEADERS += QLogger.h
+include(QLogger.pri)
 
 QMAKE_CXXFLAGS += -std=c++14
