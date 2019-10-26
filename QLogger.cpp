@@ -62,7 +62,7 @@ void QLog_(const QString &module, LogLevel level, const QString &message)
 
    const auto logWriter = manager->getLogWriter(module);
 
-   if (logWriter and logWriter->getLevel() <= level)
+   if (logWriter and !logWriter->isStop() and logWriter->getLevel() <= level)
       logWriter->write(module, message, level);
 }
 
@@ -144,6 +144,18 @@ void QLoggerManager::closeLogger()
 {
    deleteLater();
    exit(0);
+}
+
+void QLoggerManager::stopQLogger()
+{
+    for (auto logWriter : moduleDest)
+        logWriter->stop(true);
+}
+
+void QLoggerManager::resumeQLogger()
+{
+    for (auto logWriter : moduleDest)
+        logWriter->stop(false);
 }
 
 QLoggerWriter::QLoggerWriter(const QString &fileDestination, LogLevel level)

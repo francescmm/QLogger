@@ -129,6 +129,18 @@ public:
      */
     void write(const QString& module, const QString& message, const LogLevel& messageLogLevel);
 
+    /**
+     * @brief Stops the log writer
+     * @param stop True to be stop, otherwise false
+     */
+    void stop(bool stop) { mIsStop = stop; }
+
+    /**
+     * @brief Returns if the log writer is stop from writing.
+     * @return True if is stop, otherwise false
+     */
+    bool isStop() const { return mIsStop;}
+
 private:
     /**
      * @brief Path and name of the file that will store the logs.
@@ -138,6 +150,10 @@ private:
      * @brief Maximum log level allowed for the file.
      */
     LogLevel m_level;
+    /**
+     * @brief Defines if the QLogWriter is currently stop and doesn't write to file
+     */
+    bool mIsStop = false;
 
     QString renameFileIfFull();
 };
@@ -192,6 +208,17 @@ public:
      * @brief This method closes the logger and the thread it represents.
      */
     void closeLogger();
+
+    /**
+     * @brief stopQLogger Stops all QLogWriters
+     */
+    void stopQLogger();
+
+    /**
+     * @brief resumeQLogger Resumes all QLogWriters that where stop
+     */
+    void resumeQLogger();
+
     /**
      * @brief Mutex to make the method thread-safe.
      */
