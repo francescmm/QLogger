@@ -44,12 +44,14 @@ namespace QLogger {
 /**
  * @brief The LogLevel enum class defines the level of the log message.
  */
-enum class LogLevel { Trace = 0,
+enum class LogLevel {
+    Trace = 0,
     Debug,
     Info,
     Warning,
     Error,
-    Fatal };
+    Fatal
+};
 
 /**
  * @brief Here is done the call to write the message in the module. First of all is confirmed
@@ -116,7 +118,14 @@ public:
      * @brief Gets the current maximum level.
      * @return The LogLevel.
      */
-    LogLevel getLevel() const { return m_level; }
+    LogLevel getLevel() const { return mLevel; }
+
+    /**
+     * @brief setLogLevel Sets the log level for this destination
+     * @param level The max level to log messages
+     */
+    void setLogLevel(LogLevel level) { mLevel = level; }
+
     /**
      * @brief Within this method the message is written in the log file. If it would exceed
      * from 1 MByte, another file will be created and the log message will be stored in the
@@ -139,7 +148,7 @@ public:
      * @brief Returns if the log writer is stop from writing.
      * @return True if is stop, otherwise false
      */
-    bool isStop() const { return mIsStop;}
+    bool isStop() const { return mIsStop; }
 
 private:
     /**
@@ -149,7 +158,7 @@ private:
     /**
      * @brief Maximum log level allowed for the file.
      */
-    LogLevel m_level;
+    LogLevel mLevel;
     /**
      * @brief Defines if the QLogWriter is currently stop and doesn't write to file
      */
@@ -212,12 +221,19 @@ public:
     /**
      * @brief stopQLogger Stops all QLogWriters
      */
-    void stopQLogger();
+    void pause();
 
     /**
      * @brief resumeQLogger Resumes all QLogWriters that where stop
      */
-    void resumeQLogger();
+    void resume();
+
+    /**
+     * @brief overwriteLogLevel Overwrites the log level in all the destinations
+     *
+     * @param level The new log level
+     */
+    void overwriteLogLevel(LogLevel level);
 
     /**
      * @brief Mutex to make the method thread-safe.
@@ -229,10 +245,14 @@ private:
      * @brief Instance of the class.
      */
     static QLoggerManager* INSTANCE;
+
+    static bool mIsStop;
+
     /**
      * @brief Map that stores the module and the file it is assigned.
      */
     QMap<QString, QLoggerWriter*> moduleDest;
+
     /**
      * @brief Default builder of the class. It starts the thread.
      */
