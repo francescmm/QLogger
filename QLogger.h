@@ -142,6 +142,16 @@ public:
    void write(const QString &module, const QString &message, const LogLevel &messageLogLevel);
 
    /**
+    * @brief Overload function of \r write that writes with date and time.
+    *
+    * @param module The module that corresponds to the message.
+    * @param message The message log.
+    * @param messageLogLevel The log level of the message
+    * @param dt The date and time in string format
+    */
+   void write(const QString &module, const QString &message, const LogLevel &messageLogLevel, const QString &dt);
+
+   /**
     * @brief Stops the log writer
     * @param stop True to be stop, otherwise false
     */
@@ -217,14 +227,26 @@ public:
     * @return Retrns a pointer to the object.
     */
    QLoggerWriter *getLogWriter(const QString &module) { return moduleDest.value(module); }
+
    /**
     * @brief This method closes the logger and the thread it represents.
     */
    void closeLogger();
 
    /**
-    * @brief stopQLogger Stops all QLogWriters
+    * @brief Queues a message while there is no writer set. Once a writer is added.
+    * @param futureWriter The guessed writer where the message should be printed
+    * @param logData The data to log in the form of: message, level and date & time.
     */
+   void queueMessage(const QString module, const QVector<QVariant> &logData);
+
+   /**
+    * @brief Checks the queue and writes the messages if the writer is the correct one. The queue is emptied
+    * for that module.
+    * @param module The module to dequeue the messages from
+    */
+   void writeAndDequeueMessages(const QString &module);
+
    void pause();
 
    /**
@@ -250,6 +272,9 @@ private:
     */
    static QLoggerManager *INSTANCE;
 
+   /**
+    * @brief Checks if the logger is stop
+    */
    static bool mIsStop;
 
    /**
@@ -257,6 +282,10 @@ private:
     */
    QMap<QString, QLoggerWriter *> moduleDest;
 
+   /**
+    * @brief Defines the queue of messages when no writters have been set yet.
+    */
+   QMultiMap<QString, QVector<QVariant>> mNonWriterQueue;
    /**
     * @brief Default builder of the class. It starts the thread.
     */

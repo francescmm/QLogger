@@ -63,8 +63,17 @@ void QLog_(const QString &module, LogLevel level, const QString &message)
    const auto logWriter = manager->getLogWriter(module);
 
    if (logWriter and !logWriter->isStop() and logWriter->getLevel() <= level)
+   {
+      manager->writeAndDequeueMessages(module);
       logWriter->write(module, message, level);
+   }
+   else if (!logWriter)
+      manager->queueMessage(
+          module,
+          { message, static_cast<int>(level), QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss.zzz") });
 }
+
+static const int QUEUE_LIMIT = 100;
 
 // QLoggerManager
 QLoggerManager *QLoggerManager::INSTANCE = nullptr;
@@ -145,6 +154,36 @@ bool QLoggerManager::addDestination(const QString &fileDest, const QStringList &
    return allAdded;
 }
 
+void QLoggerManager::queueMessage(const QString module, const QVector<QVariant> &logData)
+{
+   if (mNonWriterQueue.count(module) < QUEUE_LIMIT)
+      mNonWriterQueue.insert(module, logData);
+}
+
+void QLoggerManager::writeAndDequeueMessages(const QString &module)
+{
+   auto element = mNonWriterQueue.find(module);
+   const auto queueEnd = mNonWriterQueue.end();
+   const auto logWriter = getLogWriter(module);
+
+   if (element != queueEnd && logWriter && !logWriter->isStop())
+   {
+      const auto module = element.key();
+
+      for (; element != queueEnd; ++element)
+      {
+         const auto message = element.value().at(0).toString();
+         const auto level = static_cast<LogLevel>(element.value().at(1).toInt());
+         const auto dt = element.value().at(2).toString();
+
+         if (logWriter->getLevel() <= level)
+            logWriter->write(module, message, level, dt);
+      }
+
+      mNonWriterQueue.remove(module);
+   }
+}
+
 void QLoggerManager::closeLogger()
 {
    deleteLater();
@@ -202,6 +241,14 @@ QString QLoggerWriter::renameFileIfFull()
 
 void QLoggerWriter::write(const QString &module, const QString &message, const LogLevel &messageLogLevel)
 {
+   const auto dtFormat = QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss.zzz");
+
+   write(module, message, messageLogLevel, dtFormat);
+}
+
+void QLoggerWriter::write(const QString &module, const QString &message, const LogLevel &messageLogLevel,
+                          const QString &dt)
+{
    QFile file(mFileDestination);
 
    const auto newName = renameFileIfFull();
@@ -209,16 +256,16 @@ void QLoggerWriter::write(const QString &module, const QString &message, const L
    if (file.open(QIODevice::ReadWrite | QIODevice::Text | QIODevice::Append))
    {
       QTextStream out(&file);
-      const auto dtFormat = QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss.zzz");
 
       if (!newName.isEmpty())
-         out << QString("%1 - Previous log %2\n").arg(dtFormat).arg(newName);
+         out << QString("%1 - Previous log %2\n").arg(dt).arg(newName);
 
       const auto logLevel = QLoggerManager::levelToText(messageLogLevel);
-      const auto text = QString("[%1] [%2] {%3} %4\n").arg(dtFormat).arg(logLevel).arg(module).arg(message);
+      const auto text = QString("[%1] [%2] {%3} %4\n").arg(dt).arg(logLevel).arg(module).arg(message);
 
       out << text;
       file.close();
    }
 }
+
 }
