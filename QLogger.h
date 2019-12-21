@@ -38,6 +38,7 @@
 #include <QObject>
 #include <QStringList>
 #include <QThread>
+#include <QVector>
 
 namespace QLogger
 {
