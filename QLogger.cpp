@@ -2,6 +2,7 @@
 #include <QDateTime>
 #include <QDir>
 #include <QTextStream>
+#include <QVector>
 
 /****************************************************************************************
  ** QLogger is a library to register and print logs into a file.
