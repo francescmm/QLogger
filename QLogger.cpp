@@ -63,7 +63,7 @@ void QLog_(const QString &module, LogLevel level, const QString &message)
 
    const auto logWriter = manager->getLogWriter(module);
 
-   if (logWriter and !logWriter->isStop() and logWriter->getLevel() <= level)
+   if (logWriter && !logWriter->isStop() && logWriter->getLevel() <= level)
    {
       manager->writeAndDequeueMessages(module);
       logWriter->write(module, message, level);
