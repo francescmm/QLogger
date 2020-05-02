@@ -195,7 +195,7 @@ void QLoggerManager::pause()
 {
    mIsStop = true;
 
-   for (auto logWriter : moduleDest)
+   for (auto &logWriter : moduleDest)
       logWriter->stop(mIsStop);
 }
 
@@ -203,13 +203,13 @@ void QLoggerManager::resume()
 {
    mIsStop = false;
 
-   for (auto logWriter : moduleDest)
+   for (auto &logWriter : moduleDest)
       logWriter->stop(mIsStop);
 }
 
 void QLoggerManager::overwriteLogLevel(LogLevel level)
 {
-   for (auto logWriter : moduleDest)
+   for (auto &logWriter : moduleDest)
       logWriter->setLogLevel(level);
 }
 
@@ -259,10 +259,10 @@ void QLoggerWriter::write(const QString &module, const QString &message, const L
       QTextStream out(&file);
 
       if (!newName.isEmpty())
-         out << QString("%1 - Previous log %2\n").arg(dt).arg(newName);
+         out << QString("%1 - Previous log %2\n").arg(dt, newName);
 
       const auto logLevel = QLoggerManager::levelToText(messageLogLevel);
-      const auto text = QString("[%1] [%2] {%3} %4\n").arg(dt).arg(logLevel).arg(module).arg(message);
+      const auto text = QString("[%1] [%2] {%3} %4\n").arg(dt, logLevel, module, message);
 
       out << text;
       file.close();
