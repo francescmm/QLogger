@@ -61,17 +61,20 @@ void QLog_(const QString &module, LogLevel level, const QString &message)
 
    QMutexLocker(&manager->mutex);
 
-   const auto logWriter = manager->getLogWriter(module);
-
-   if (logWriter && !logWriter->isStop() && logWriter->getLevel() <= level)
+   if (const auto logWriter = manager->getLogWriter(module))
    {
-      manager->writeAndDequeueMessages(module);
-      logWriter->write(module, message, level);
+       if (!logWriter->isStop() && logWriter->getLevel() <= level)
+       {
+           manager->writeAndDequeueMessages(module);
+           logWriter->write(module, message, level);
+       }
    }
-   else if (!logWriter)
-      manager->queueMessage(
-          module,
-          { message, static_cast<int>(level), QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss.zzz") });
+   else
+   {
+       manager->queueMessage(
+                   module,
+       { message, static_cast<int>(level), QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss.zzz") });
+   }
 }
 
 static const int QUEUE_LIMIT = 100;
