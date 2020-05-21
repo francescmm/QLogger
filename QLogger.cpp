@@ -77,7 +77,6 @@ void QLog_(const QString &module, LogLevel level, const QString &message)
 static const int QUEUE_LIMIT = 100;
 
 // QLoggerManager
-QLoggerManager *QLoggerManager::INSTANCE = nullptr;
 bool QLoggerManager::mIsStop = false;
 
 QLoggerManager::QLoggerManager()
@@ -94,10 +93,8 @@ QLoggerManager::QLoggerManager()
 
 QLoggerManager *QLoggerManager::getInstance()
 {
-   if (!INSTANCE)
-      INSTANCE = new QLoggerManager();
-
-   return INSTANCE;
+    static QLoggerManager instance;
+    return &instance;
 }
 
 QString QLoggerManager::levelToText(const LogLevel &level)

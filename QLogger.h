@@ -268,11 +268,6 @@ public:
 
 private:
    /**
-    * @brief Instance of the class.
-    */
-   static QLoggerManager *INSTANCE;
-
-   /**
     * @brief Checks if the logger is stop
     */
    static bool mIsStop;
