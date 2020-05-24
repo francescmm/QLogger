@@ -61,25 +61,23 @@ void QLog_(const QString &module, LogLevel level, const QString &message)
 
    QMutexLocker(&manager->mutex);
 
-   if (const auto logWriter = manager->getLogWriter(module))
+   const auto logWriter = manager->getLogWriter(module);
+
+   if (logWriter && !logWriter->isStop() && logWriter->getLevel() <= level)
    {
-       if (!logWriter->isStop() && logWriter->getLevel() <= level)
-       {
-           manager->writeAndDequeueMessages(module);
-           logWriter->write(module, message, level);
-       }
+      manager->writeAndDequeueMessages(module);
+      logWriter->write(module, message, level);
    }
-   else
-   {
-       manager->queueMessage(
-                   module,
-       { message, static_cast<int>(level), QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss.zzz") });
-   }
+   else if (!logWriter)
+      manager->queueMessage(
+          module,
+          { message, static_cast<int>(level), QDateTime::currentDateTime().toString("dd-MM-yyyy hh:mm:ss.zzz") });
 }
 
 static const int QUEUE_LIMIT = 100;
 
 // QLoggerManager
+QLoggerManager *QLoggerManager::INSTANCE = nullptr;
 bool QLoggerManager::mIsStop = false;
 
 QLoggerManager::QLoggerManager()
@@ -96,8 +94,10 @@ QLoggerManager::QLoggerManager()
 
 QLoggerManager *QLoggerManager::getInstance()
 {
-    static QLoggerManager instance;
-    return &instance;
+   if (!INSTANCE)
+      INSTANCE = new QLoggerManager();
+
+   return INSTANCE;
 }
 
 QString QLoggerManager::levelToText(const LogLevel &level)
