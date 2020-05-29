@@ -83,15 +83,10 @@ static const int QUEUE_LIMIT = 100;
 bool QLoggerManager::mIsStop = false;
 
 QLoggerManager::QLoggerManager()
-   : QThread()
-   , mutex(QMutex::Recursive)
+   : mutex(QMutex::Recursive)
 {
-   start();
-
    QDir dir(QDir::currentPath());
-
-   if (!dir.exists("logs"))
-      dir.mkdir("logs");
+   dir.mkdir("logs");
 }
 
 QLoggerManager *QLoggerManager::getInstance()
@@ -187,7 +182,6 @@ void QLoggerManager::writeAndDequeueMessages(const QString &module)
 
 void QLoggerManager::closeLogger()
 {
-   deleteLater();
    exit(0);
 }
 

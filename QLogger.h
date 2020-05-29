@@ -37,7 +37,6 @@
 #include <QMutex>
 #include <QObject>
 #include <QStringList>
-#include <QThread>
 
 namespace QLogger
 {
@@ -183,7 +182,7 @@ private:
 /**
  * @brief The QLoggerManager class manages the different destination files that we would like to have.
  */
-class QLoggerManager : public QThread
+class QLoggerManager
 {
 public:
    /**
