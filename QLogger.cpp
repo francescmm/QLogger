@@ -4,7 +4,6 @@
 
 #include <QDir>
 #include <QDateTime>
-#include <QVariant>
 
 Q_DECLARE_METATYPE(QLogger::LogLevel);
 
@@ -22,9 +21,7 @@ QLoggerManager::QLoggerManager()
    : mMutex(QMutex::Recursive)
 {
    QDir dir(QDir::currentPath());
-
-   if (!dir.exists("logs"))
-      dir.mkdir("logs");
+   dir.mkdir("logs");
 }
 
 QLoggerManager *QLoggerManager::getInstance()

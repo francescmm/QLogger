@@ -35,9 +35,9 @@
 
 #include <QLoggerLevel.h>
 
-#include <QObject>
 #include <QMutex>
 #include <QMap>
+#include <QVariant>
 
 namespace QLogger
 {
@@ -47,7 +47,7 @@ class QLoggerWriter;
 /**
  * @brief The QLoggerManager class manages the different destination files that we would like to have.
  */
-class QLoggerManager : public QObject
+class QLoggerManager
 {
 public:
    /**
