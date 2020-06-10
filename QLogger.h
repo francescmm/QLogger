@@ -21,18 +21,6 @@
  ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ***************************************************************************************/
 
-/**************************************************************************************************/
-/***                                     GENERAL USAGE                                          ***/
-/***                                                                                            ***/
-/***  1. Create an instance: QLoggerManager *manager = QLoggerManager::getInstance();           ***/
-/***  2. Add a destination:  manager->addDestination(filePathName, module, logLevel);           ***/
-/***  3. Print the log in the file with: QLog_<Trace/Debug/Info/Warning/Error/Fatal>            ***/
-/***                                                                                            ***/
-/***  You can add as much destinations as you want. You also can add several modules for each   ***/
-/***  log file.                                                                                 ***/
-/***                                                                                            ***/
-/**************************************************************************************************/
-
 #include <QLoggerLevel.h>
 
 #include <QMutex>

@@ -55,13 +55,6 @@ public:
     */
    void setLogLevel(LogLevel level) { mLevel = level; }
 
-   /**
-    * @brief Writes a message in a file. If the file is full, it truncates it and prints a first line with the
-    * information of the old file.
-    *
-    * @param message Pair of values consistent on the date and the message to be log.
-    */
-   void write(const QPair<QString, QString> &message);
 
    /**
     * @brief enqueue Enqueues a message to be written in the destiantion.
@@ -93,14 +86,30 @@ public:
    void closeDestination();
 
 private:
-   bool quit = false;
+   bool mQuit = false;
    bool mIsStop = false;
-   QWaitCondition queueNotEmpty;
+   QWaitCondition mQueueNotEmpty;
    QString mFileDestination;
    LogLevel mLevel;
-   QString renameFileIfFull();
    QVector<QPair<QString, QString>> messages;
    QMutex mutex;
+   static const int MaxFileSize = 1024 * 1024;
+
+   /**
+    * @brief renameFileIfFull Truncates the log file in two. Keeps the filename for the new one and renames the old one
+    * with the timestamp.
+    *
+    * @return Returns the file name for the old logs.
+    */
+   QString renameFileIfFull();
+
+   /**
+    * @brief Writes a message in a file. If the file is full, it truncates it and prints a first line with the
+    * information of the old file.
+    *
+    * @param message Pair of values consistent on the date and the message to be log.
+    */
+   void write(const QPair<QString, QString> &message);
 };
 
 }

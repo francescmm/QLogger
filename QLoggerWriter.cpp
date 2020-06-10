@@ -39,37 +39,35 @@ QLoggerWriter::QLoggerWriter(const QString &fileDestination, LogLevel level)
 
 QString QLoggerWriter::renameFileIfFull()
 {
-   const auto MAX_SIZE = 1024 * 1024;
-   const auto toRemove = mFileDestination.section('.', -1);
-   const auto fileNameAux = mFileDestination.left(mFileDestination.size() - toRemove.size() - 1);
-   auto renamed = false;
-   auto newName = QString("%1%2").arg(fileNameAux, "_%1__%2.log");
-
    QFile file(mFileDestination);
 
    // Rename file if it's full
-   if (file.size() >= MAX_SIZE)
+   if (file.size() >= MaxFileSize)
    {
-      const auto currentTime = QDateTime::currentDateTime();
-      newName = newName.arg(currentTime.date().toString("dd_MM_yy"), currentTime.time().toString("hh_mm_ss"));
-      renamed = file.rename(mFileDestination, newName);
+      const auto newName = QString("%1_%2.log")
+                               .arg(mFileDestination.left(mFileDestination.lastIndexOf('.')),
+                                    QDateTime::currentDateTime().toString("dd_MM_yy__hh_mm_ss"));
+
+      const auto renamed = file.rename(mFileDestination, newName);
+
+      return renamed ? newName : QString();
    }
 
-   return renamed ? newName : QString();
+   return QString();
 }
 
 void QLoggerWriter::write(const QPair<QString, QString> &message)
 {
    QFile file(mFileDestination);
 
-   const auto newName = renameFileIfFull();
+   const auto prevFilename = renameFileIfFull();
 
    if (file.open(QIODevice::ReadWrite | QIODevice::Text | QIODevice::Append))
    {
       QTextStream out(&file);
 
-      if (!newName.isEmpty())
-         out << QString("%1 - Previous log %2\n").arg(message.first, newName);
+      if (!prevFilename.isEmpty())
+         out << QString("%1 - Previous log %2\n").arg(message.first, prevFilename);
 
       out << message.second;
 
@@ -92,17 +90,18 @@ void QLoggerWriter::enqueue(const QDateTime &date, const QString &threadId, cons
    QMutexLocker locker(&mutex);
    messages.append({ threadId, text });
 
-   queueNotEmpty.wakeOne();
+   mQueueNotEmpty.wakeOne();
 }
 
 void QLoggerWriter::run()
 {
-   while (!quit)
+   while (!mQuit)
    {
-      mutex.lock();
       decltype(messages) copy;
-      std::swap(copy, messages);
-      mutex.unlock();
+      {
+         QMutexLocker locker(&mutex);
+         std::swap(copy, messages);
+      }
 
       for (const auto &msg : copy)
          write(msg);
@@ -110,15 +109,15 @@ void QLoggerWriter::run()
       copy.clear();
 
       mutex.lock();
-      queueNotEmpty.wait(&mutex);
+      mQueueNotEmpty.wait(&mutex);
       mutex.unlock();
    }
 }
 
 void QLoggerWriter::closeDestination()
 {
-   quit = true;
-   queueNotEmpty.wakeOne();
+   mQuit = true;
+   mQueueNotEmpty.wakeOne();
 
    exit(0);
    wait();
