@@ -26,6 +26,7 @@
 #include <QThread>
 #include <QWaitCondition>
 #include <QMutex>
+#include <QVector>
 
 namespace QLogger
 {
@@ -54,7 +55,6 @@ public:
     * @param level The new level threshold.
     */
    void setLogLevel(LogLevel level) { mLevel = level; }
-
 
    /**
     * @brief enqueue Enqueues a message to be written in the destiantion.
