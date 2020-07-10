@@ -103,7 +103,7 @@ void QLoggerWriter::run()
          std::swap(copy, messages);
       }
 
-      for (const auto &msg : copy)
+      for (const auto &msg : qAsConst(copy))
          write(msg);
 
       copy.clear();

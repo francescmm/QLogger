@@ -90,7 +90,7 @@ void QLoggerManager::writeAndDequeueMessages(const QString &module)
 
    if (logWriter && !logWriter->isStop())
    {
-      for (const auto &values : mNonWriterQueue)
+      for (const auto &values : qAsConst(mNonWriterQueue))
       {
          const auto level = qvariant_cast<LogLevel>(values.at(2).toInt());
 
@@ -165,7 +165,7 @@ QLoggerManager::~QLoggerManager()
    for (const auto &dest : mModuleDest.toStdMap())
       writeAndDequeueMessages(dest.first);
 
-   for (auto dest : mModuleDest)
+   for (auto dest : qAsConst(mModuleDest))
    {
       dest->closeDestination();
       delete dest;
