@@ -168,7 +168,7 @@ QLoggerManager::~QLoggerManager()
    for (auto dest : qAsConst(mModuleDest))
    {
       dest->closeDestination();
-      delete dest;
+      dest->deleteLater();
    }
 
    mModuleDest.clear();

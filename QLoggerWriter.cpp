@@ -117,10 +117,7 @@ void QLoggerWriter::run()
 void QLoggerWriter::closeDestination()
 {
    mQuit = true;
-   mQueueNotEmpty.wakeOne();
-
-   exit(0);
-   wait();
+   mQueueNotEmpty.wakeAll();
 }
 
 }
