@@ -1,3 +1,5 @@
+INCLUDEPATH += $$PWD
+
 SOURCES += $$PWD/QLogger.cpp \
     $$PWD/QLoggerWriter.cpp
 
