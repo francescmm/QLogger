@@ -68,7 +68,16 @@ public:
     * @return Returns true if any error have been done.
     */
    bool addDestination(const QString &fileDest, const QStringList &modules, LogLevel level);
-
+   
+   /**
+    * @brief Clears old log files from the current storage folder.
+    *
+    * @param fileFolderDestination The destination folder.
+    * @param days Minimum age of log files to delete. Logs older than
+    *        this value will be removed. If days is -1, deletes any log file.
+    */
+   static void clearFileDestinationFolder(const QString &fileFolderDestination, int days=-1);
+   
    /**
     * @brief enqueueMessage Enqueues a message in the corresponding QLoggerWritter.
     * @param module The module that writes the message.

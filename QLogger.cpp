@@ -85,6 +85,28 @@ bool QLoggerManager::addDestination(const QString &fileDest, const QStringList &
    return allAdded;
 }
 
+void QLoggerManager::clearFileDestinationFolder(const QString &fileFolderDestination, int days)
+{
+    QDir dir(fileFolderDestination + QStringLiteral("/logs"));
+    if (!dir.exists()) {
+        return;
+    }
+
+    dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+    const QFileInfoList list = dir.entryInfoList();
+
+    const QDateTime now = QDateTime::currentDateTime();
+
+    for (int i = 0; i < list.size(); ++i) {
+        QFileInfo fileInfo = list.at(i);
+
+        if (fileInfo.lastModified().daysTo(now) >= days) {
+            //remove file
+            dir.remove(fileInfo.fileName());
+        }
+    }
+}
+
 void QLoggerManager::writeAndDequeueMessages(const QString &module)
 {
    QMutexLocker lock(&mMutex);
