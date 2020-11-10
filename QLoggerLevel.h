@@ -21,8 +21,12 @@
  ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ***************************************************************************************/
 
+#include <QFlag>
+
+
 namespace QLogger
 {
+
 
 /**
  * @brief The LogLevel enum class defines the level of the log message.
@@ -36,5 +40,46 @@ enum class LogLevel
    Error,
    Fatal
 };
+
+/**
+ * @brief The LogMode enum class defines the way to display the log message.
+ */
+enum class LogMode
+{
+    Disabled = 0,
+    OnlyConsole,
+    OnlyFile,
+    Full
+};
+
+/**
+ * @brief The LogFileDisplay enum class defines which elements are written in the log file name.
+ */
+enum class LogFileDisplay
+{
+    DateTime,
+    Number
+};
+
+/**
+ * @brief The LogTextDisplay enum class defines which elements are written by log message.
+ */
+enum class LogMessageDisplay : unsigned int
+{
+    LogLevel      = 1<<0,
+    ModuleName    = 1<<1,
+    DateTime      = 1<<2,
+    ThreadId      = 1<<3,
+    Function      = 1<<4,
+    FileLine      = 1<<5,
+    Message       = 1<<6,
+
+    Default       = LogLevel|ModuleName|DateTime|ThreadId|FileLine|Message,
+    Default2      = LogLevel|ModuleName|DateTime|ThreadId|Function|Message,
+    Full          = 0xFF
+};
+Q_DECLARE_FLAGS(LogMessageDisplays, LogMessageDisplay)
+Q_DECLARE_OPERATORS_FOR_FLAGS(LogMessageDisplays)
+
 
 }
