@@ -125,17 +125,14 @@ void QLoggerManager::clearFileDestinationFolder(const QString &fileFolderDestina
     }
 
     dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
-    const QFileInfoList list = dir.entryInfoList();
+    const auto list = dir.entryInfoList();
 
-    const QDateTime now = QDateTime::currentDateTime();
+    const auto now = QDateTime::currentDateTime();
 
-    QFileInfoList::const_iterator i;
-    for (i = list.constBegin(); i != list.constEnd(); ++i) {
-        const QFileInfo fileInfo = *i;
-
-        if (fileInfo.lastModified().daysTo(now) >= days) {
+    for (auto fileInfoIter = list.constBegin(); fileInfoIter != list.constEnd(); ++fileInfoIter) {
+        if (fileInfoIter->lastModified().daysTo(now) >= days) {
             //remove file
-            dir.remove(fileInfo.fileName());
+            dir.remove(fileInfoIter->fileName());
         }
     }
 }
@@ -179,11 +176,12 @@ void QLoggerManager::enqueueMessage(const QString &module, LogLevel level, const
                                     const QString& file, int line)
 {
    QMutexLocker lock(&mMutex);
-   const auto threadId = QString("%1").arg((quintptr)QThread::currentThread(), QT_POINTER_SIZE * 2, 16, QChar('0'));
-   const auto fileName = file.mid(file.lastIndexOf('/') + 1);
-   const auto logWriter = mModuleDest.value(module, Q_NULLPTR);
+   const auto threadId      = QString("%1").arg((quintptr)QThread::currentThread(), QT_POINTER_SIZE * 2, 16, QChar('0'));
+   const auto fileName      = file.mid(file.lastIndexOf('/') + 1);
+   const auto logWriter     = mModuleDest.value(module, Q_NULLPTR);
+   const auto isLogEnabled  = logWriter && logWriter->getMode() != LogMode::Disabled && !logWriter->isStop();
 
-   if (logWriter && logWriter->getMode() != LogMode::Disabled && !logWriter->isStop() && logWriter->getLevel() <= level)
+   if (isLogEnabled && logWriter->getLevel() <= level)
    {
       writeAndDequeueMessages(module);
 
