@@ -162,10 +162,10 @@ private:
     *
     * @param fileDestination The file path and name without the extension.
     * @param fileExtension The file extension
-    * @param p_number The file suffix number.
+    * @param fileSuffixNumber The file suffix number.
     * @return The complete path of the duplicated file name.
     */
-   static QString generateDuplicateFilename(const QString& fileDestination, const QString& fileExtension, int p_number=1);
+   static QString generateDuplicateFilename(const QString& fileDestination, const QString& fileExtension, int fileSuffixNumber=1);
 
    /**
     * @brief Writes a message in a file. If the file is full, it truncates it and prints a first line with the

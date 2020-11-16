@@ -106,14 +106,14 @@ QString QLoggerWriter::renameFileIfFull()
    return QString();
 }
 
-QString QLoggerWriter::generateDuplicateFilename(const QString& fileDestination, const QString& fileExtension, int p_number)
+QString QLoggerWriter::generateDuplicateFilename(const QString& fileDestination, const QString& fileExtension, int fileSuffixNumber)
 {
     QString path(fileDestination);
-    if (p_number > 1) {
+    if (fileSuffixNumber > 1) {
         // Set the new display name
         path = QString("%1(%2).%3")
                         .arg(fileDestination,
-                             QString::number(p_number),
+                             QString::number(fileSuffixNumber),
                              fileExtension);
     } else {
         path.append(QString(".%1").arg(fileExtension));
@@ -121,7 +121,7 @@ QString QLoggerWriter::generateDuplicateFilename(const QString& fileDestination,
 
     if (QFileInfo::exists(path)) {
         // A name already exists, increment the number and check again
-        return generateDuplicateFilename(fileDestination, fileExtension, p_number+1);
+        return generateDuplicateFilename(fileDestination, fileExtension, fileSuffixNumber+1);
     }
 
     // No file exists at the given location, so no need to continue
@@ -158,6 +158,8 @@ void QLoggerWriter::write(const QPair<QString, QString> &message)
 void QLoggerWriter::enqueue(const QDateTime &date, const QString &threadId, const QString &module, LogLevel level,
                             const QString &function, const QString &fileName, int line, const QString &message)
 {
+   QMutexLocker locker(&mutex);
+
    if (mMode == LogMode::Disabled)
       return;
 
@@ -201,7 +203,6 @@ void QLoggerWriter::enqueue(const QDateTime &date, const QString &threadId, cons
        text.append(QString::fromLatin1("\n"));
    }
 
-   QMutexLocker locker(&mutex);
    messages.append({ threadId, text });
 
    mQueueNotEmpty.wakeOne();

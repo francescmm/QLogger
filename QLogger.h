@@ -56,6 +56,7 @@ public:
     * @param fileFolderDestination The complete folder destination.
     * @param mode The logging mode.
     * @param fileSuffixIfFull The filename suffix if the file is full.
+    * @param messageOptions Specifies what elements are displayed in one line of log message.
     * @return Returns true if any error have been done.
     */
    bool addDestination(const QString &fileDest, const QString &module, LogLevel level=LogLevel::Warning,
@@ -74,10 +75,11 @@ public:
     * @param fileFolderDestination The complete folder destination.
     * @param mode The logging mode.
     * @param fileSuffixIfFull The filename suffix if the file is full.
+    * @param messageOptions Specifies what elements are displayed in one line of log message.
     * @return Returns true if any error have been done.
     */
    bool addDestination(const QString &fileDest, const QStringList &modules, LogLevel level=LogLevel::Warning,
-                       const QString &fileFolderDestination=QString(),LogMode mode=LogMode::OnlyFile,
+                       const QString &fileFolderDestination=QString(), LogMode mode=LogMode::OnlyFile,
                        LogFileDisplay fileSuffixIfFull=LogFileDisplay::DateTime,
                        LogMessageDisplays messageOptions=LogMessageDisplay::Default, bool notify=true);
    /**
@@ -205,6 +207,21 @@ private:
     * @brief Destructor
     */
    ~QLoggerManager();
+
+   /**
+    * @brief Initializes and returns a new instance of QLoggerWriter with the given parameters.
+    * @param fileDest The file name and path to print logs.
+    * @param level The maximum level allowed.
+    * @param fileFolderDestination The complete folder destination.
+    * @param mode The logging mode.
+    * @param fileSuffixIfFull The filename suffix if the file is full.
+    * @param messageOptions Specifies what elements are displayed in one line of log message.
+    * @return the newly created QLoggerWriter instance.
+    */
+   QLoggerWriter* initializeWriter(const QString &fileDest, LogLevel level,
+                                   const QString &fileFolderDestination, LogMode mode,
+                                   LogFileDisplay fileSuffixIfFull,
+                                   LogMessageDisplays messageOptions) const;
 
    /**
     * @brief Checks the queue and writes the messages if the writer is the correct one. The queue is emptied
