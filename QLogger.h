@@ -255,8 +255,8 @@ extern void QLog_(const QString &module, QLogger::LogLevel level, const QString 
  * @param message The message.
  */
 #   define QLog_Trace(module, message)                                                                                 \
-      QLogger::QLoggerManager::getInstance()->enqueueMessage(module, QLogger::LogLevel::Trace, message, __FILE__,      \
-                                                             __LINE__, __FUNCTION__)
+      QLogger::QLoggerManager::getInstance()->enqueueMessage(module, QLogger::LogLevel::Trace, message, __FUNCTION__,  \
+                                                             __FILE__, __LINE__)
 #endif
 
 #ifndef QLog_Debug
