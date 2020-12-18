@@ -71,11 +71,12 @@ enum class LogMessageDisplay : unsigned int
     DateTime      = 1<<2,
     ThreadId      = 1<<3,
     Function      = 1<<4,
-    FileLine      = 1<<5,
-    Message       = 1<<6,
+    File          = 1<<5,
+    Line          = 1<<6,
+    Message       = 1<<7,
 
-    Default       = LogLevel|ModuleName|DateTime|ThreadId|FileLine|Message,
-    Default2      = LogLevel|ModuleName|DateTime|ThreadId|Function|Message,
+    Default       = LogLevel|ModuleName|DateTime|ThreadId|File|Line|Message,
+    Default2      = LogLevel|ModuleName|DateTime|ThreadId|File|Function|Message,
     Full          = 0xFF
 };
 Q_DECLARE_FLAGS(LogMessageDisplays, LogMessageDisplay)

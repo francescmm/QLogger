@@ -164,8 +164,10 @@ void QLoggerWriter::enqueue(const QDateTime &date, const QString &threadId, cons
       return;
 
    QString fileLine;
-   if (mMessageOptions.testFlag(LogMessageDisplay::FileLine) && !fileName.isEmpty() && line > 0 && mLevel <= LogLevel::Debug)
-        fileLine = QString(" {%1:%2}").arg(fileName, QString::number(line));
+   if (mMessageOptions.testFlag(LogMessageDisplay::File) && mMessageOptions.testFlag(LogMessageDisplay::Line) && !fileName.isEmpty() && line > 0 && mLevel <= LogLevel::Debug)
+       fileLine = QString("{%1:%2}").arg(fileName, QString::number(line));
+   else if (mMessageOptions.testFlag(LogMessageDisplay::File) && mMessageOptions.testFlag(LogMessageDisplay::Function) && !fileName.isEmpty() &&  !function.isEmpty() && mLevel <= LogLevel::Debug)
+       fileLine = QString("{%1}{%2}").arg(fileName, function);
 
    QString text;
    if (mMessageOptions.testFlag(LogMessageDisplay::Default)) {
@@ -184,14 +186,11 @@ void QLoggerWriter::enqueue(const QDateTime &date, const QString &threadId, cons
        if (mMessageOptions.testFlag(LogMessageDisplay::ThreadId)) {
            text.append(QString("[%1]").arg(threadId));
        }
-       if (mMessageOptions.testFlag(LogMessageDisplay::Function) && !function.isEmpty()) {
-           text.append(QString("[%1]").arg(function));
-       }
-       if (mMessageOptions.testFlag(LogMessageDisplay::FileLine) && !fileLine.isEmpty()) {
+       if (!fileLine.isEmpty()) {
            if (fileLine.startsWith(QChar::Space)) {
                fileLine = fileLine.right(1);
            }
-           text.append(QString("%1").arg(fileLine));
+           text.append(fileLine);
        }
        if (mMessageOptions.testFlag(LogMessageDisplay::Message)) {
            if (text.isEmpty() || text.endsWith(QChar::Space)) {
