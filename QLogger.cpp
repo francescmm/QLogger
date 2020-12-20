@@ -13,8 +13,8 @@ Q_DECLARE_METATYPE(QLogger::LogMessageDisplay);
 namespace QLogger
 {
 
-void QLog_(const QString &module, LogLevel level, const QString &message,
-           const QString &function, const QString &file, int line)
+void QLog_(const QString &module, LogLevel level, const QString &message, const QString &function, const QString &file,
+           int line)
 {
    QLoggerManager::getInstance()->enqueueMessage(module, level, message, function, file, line);
 }
@@ -24,7 +24,6 @@ static const int QUEUE_LIMIT = 100;
 QLoggerManager::QLoggerManager()
    : mMutex(QMutex::Recursive)
 {
-
 }
 
 QLoggerManager *QLoggerManager::getInstance()
@@ -35,26 +34,28 @@ QLoggerManager *QLoggerManager::getInstance()
 }
 
 bool QLoggerManager::addDestination(const QString &fileDest, const QString &module, LogLevel level,
-                                    const QString &fileFolderDestination, LogMode mode,
-                                    LogFileDisplay fileSuffixIfFull, LogMessageDisplays messageOptions, bool notify)
+                                    const QString &fileFolderDestination, LogMode mode, LogFileDisplay fileSuffixIfFull,
+                                    LogMessageDisplays messageOptions, bool notify)
 {
    QMutexLocker lock(&mMutex);
 
    if (!mModuleDest.contains(module))
    {
-      const auto log = initializeWriter(fileDest, level, fileFolderDestination,
-                                        mode, fileSuffixIfFull, messageOptions);
+      const auto log = initializeWriter(fileDest, level, fileFolderDestination, mode, fileSuffixIfFull, messageOptions);
 
       mModuleDest.insert(module, log);
 
       if (!mIsStop)
       {
-          if (notify) {
-              const auto threadId = QString("%1").arg((quintptr)QThread::currentThread(), QT_POINTER_SIZE * 2, 16, QChar('0'));
-              log->enqueue(QDateTime::currentDateTime(), threadId, module, LogLevel::Info, "", "", -1, "Adding destination!");
-          }
-          if (mode != LogMode::Disabled)
-              log->start();
+         if (notify)
+         {
+            const auto threadId
+                = QString("%1").arg((quintptr)QThread::currentThread(), QT_POINTER_SIZE * 2, 16, QChar('0'));
+            log->enqueue(QDateTime::currentDateTime(), threadId, module, LogLevel::Info, "", "", -1,
+                         "Adding destination!");
+         }
+         if (mode != LogMode::Disabled)
+            log->start();
       }
 
       return true;
@@ -64,8 +65,8 @@ bool QLoggerManager::addDestination(const QString &fileDest, const QString &modu
 }
 
 bool QLoggerManager::addDestination(const QString &fileDest, const QStringList &modules, LogLevel level,
-                                    const QString &fileFolderDestination, LogMode mode,
-                                    LogFileDisplay fileSuffixIfFull, LogMessageDisplays messageOptions, bool notify)
+                                    const QString &fileFolderDestination, LogMode mode, LogFileDisplay fileSuffixIfFull,
+                                    LogMessageDisplays messageOptions, bool notify)
 {
    QMutexLocker lock(&mMutex);
    bool allAdded = false;
@@ -74,20 +75,22 @@ bool QLoggerManager::addDestination(const QString &fileDest, const QStringList &
    {
       if (!mModuleDest.contains(module))
       {
-         const auto log = initializeWriter(fileDest, level, fileFolderDestination,
-                                           mode, fileSuffixIfFull, messageOptions);
+         const auto log
+             = initializeWriter(fileDest, level, fileFolderDestination, mode, fileSuffixIfFull, messageOptions);
 
          mModuleDest.insert(module, log);
 
          if (!mIsStop)
          {
-            if (notify) {
-                const auto threadId
-                        = QString("%1").arg((quintptr)QThread::currentThread(), QT_POINTER_SIZE * 2, 16, QChar('0'));
-                log->enqueue(QDateTime::currentDateTime(), threadId, module, LogLevel::Info, "", "", -1, "Adding destination!");
+            if (notify)
+            {
+               const auto threadId
+                   = QString("%1").arg((quintptr)QThread::currentThread(), QT_POINTER_SIZE * 2, 16, QChar('0'));
+               log->enqueue(QDateTime::currentDateTime(), threadId, module, LogLevel::Info, "", "", -1,
+                            "Adding destination!");
             }
             if (mode != LogMode::Disabled)
-              log->start();
+               log->start();
          }
 
          allAdded = true;
@@ -99,47 +102,55 @@ bool QLoggerManager::addDestination(const QString &fileDest, const QStringList &
 
 QLoggerWriter *QLoggerManager::initializeWriter(const QString &fileDest, LogLevel level,
                                                 const QString &fileFolderDestination, LogMode mode,
-                                                LogFileDisplay fileSuffixIfFull, LogMessageDisplays messageOptions) const
+                                                LogFileDisplay fileSuffixIfFull,
+                                                LogMessageDisplays messageOptions) const
 {
-    const QString lFileDest                  = fileDest.isEmpty() ? mDefaultFileDestination : fileDest;
-    const LogLevel lLevel                    = level == LogLevel::Warning ? mDefaultLevel : level;
-    const QString lFileFolderDestination     = fileFolderDestination.isEmpty() ? mDefaultFileDestinationFolder : QDir::fromNativeSeparators(fileFolderDestination);
-    const LogMode lMode                      = mode == LogMode::OnlyFile ? mDefaultMode : mode;
-    const LogFileDisplay lFileSuffixIfFull   = fileSuffixIfFull == LogFileDisplay::DateTime ? mDefaultFileSuffixIfFull : fileSuffixIfFull;
-    const LogMessageDisplays lMessageOptions = messageOptions.testFlag(LogMessageDisplay::Default) ? mDefaultMessageOptions : messageOptions;
+   const QString lFileDest = fileDest.isEmpty() ? mDefaultFileDestination : fileDest;
+   const LogLevel lLevel = level == LogLevel::Warning ? mDefaultLevel : level;
+   const QString lFileFolderDestination = fileFolderDestination.isEmpty()
+       ? mDefaultFileDestinationFolder
+       : QDir::fromNativeSeparators(fileFolderDestination);
+   const LogMode lMode = mode == LogMode::OnlyFile ? mDefaultMode : mode;
+   const LogFileDisplay lFileSuffixIfFull
+       = fileSuffixIfFull == LogFileDisplay::DateTime ? mDefaultFileSuffixIfFull : fileSuffixIfFull;
+   const LogMessageDisplays lMessageOptions
+       = messageOptions.testFlag(LogMessageDisplay::Default) ? mDefaultMessageOptions : messageOptions;
 
-    const auto log = new QLoggerWriter(lFileDest, lLevel, lFileFolderDestination,
-                                       lMode, lFileSuffixIfFull, lMessageOptions);
+   const auto log
+       = new QLoggerWriter(lFileDest, lLevel, lFileFolderDestination, lMode, lFileSuffixIfFull, lMessageOptions);
 
-    log->setMaxFileSize(mDefaultMaxFileSize);
-    log->stop(mIsStop);
+   log->setMaxFileSize(mDefaultMaxFileSize);
+   log->stop(mIsStop);
 
-    return log;
+   return log;
 }
 
 void QLoggerManager::clearFileDestinationFolder(const QString &fileFolderDestination, int days)
 {
-    QDir dir(fileFolderDestination + QStringLiteral("/logs"));
-    if (!dir.exists()) {
-        return;
-    }
+   QDir dir(fileFolderDestination + QStringLiteral("/logs"));
+   if (!dir.exists())
+   {
+      return;
+   }
 
-    dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
-    const auto list = dir.entryInfoList();
+   dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+   const auto list = dir.entryInfoList();
 
-    const auto now = QDateTime::currentDateTime();
+   const auto now = QDateTime::currentDateTime();
 
-    for (auto fileInfoIter = list.constBegin(); fileInfoIter != list.constEnd(); ++fileInfoIter) {
-        if (fileInfoIter->lastModified().daysTo(now) >= days) {
-            //remove file
-            dir.remove(fileInfoIter->fileName());
-        }
-    }
+   for (auto fileInfoIter = list.constBegin(); fileInfoIter != list.constEnd(); ++fileInfoIter)
+   {
+      if (fileInfoIter->lastModified().daysTo(now) >= days)
+      {
+         // remove file
+         dir.remove(fileInfoIter->fileName());
+      }
+   }
 }
 
 void QLoggerManager::setDefaultFileDestinationFolder(const QString &fileDestinationFolder)
 {
-    mDefaultFileDestinationFolder = QDir::fromNativeSeparators(fileDestinationFolder);
+   mDefaultFileDestinationFolder = QDir::fromNativeSeparators(fileDestinationFolder);
 }
 
 void QLoggerManager::writeAndDequeueMessages(const QString &module)
@@ -172,14 +183,14 @@ void QLoggerManager::writeAndDequeueMessages(const QString &module)
    }
 }
 
-void QLoggerManager::enqueueMessage(const QString &module, LogLevel level, const QString &message, const QString& function,
-                                    const QString& file, int line)
+void QLoggerManager::enqueueMessage(const QString &module, LogLevel level, const QString &message,
+                                    const QString &function, const QString &file, int line)
 {
    QMutexLocker lock(&mMutex);
-   const auto threadId      = QString("%1").arg((quintptr)QThread::currentThread(), QT_POINTER_SIZE * 2, 16, QChar('0'));
-   const auto fileName      = file.mid(file.lastIndexOf('/') + 1);
-   const auto logWriter     = mModuleDest.value(module, Q_NULLPTR);
-   const auto isLogEnabled  = logWriter && logWriter->getMode() != LogMode::Disabled && !logWriter->isStop();
+   const auto threadId = QString("%1").arg((quintptr)QThread::currentThread(), QT_POINTER_SIZE * 2, 16, QChar('0'));
+   const auto fileName = file.mid(file.lastIndexOf('/') + 1);
+   const auto logWriter = mModuleDest.value(module, Q_NULLPTR);
+   const auto isLogEnabled = logWriter && logWriter->getMode() != LogMode::Disabled && !logWriter->isStop();
 
    if (isLogEnabled && logWriter->getLevel() <= level)
    {
@@ -188,9 +199,9 @@ void QLoggerManager::enqueueMessage(const QString &module, LogLevel level, const
       logWriter->enqueue(QDateTime::currentDateTime(), threadId, module, level, function, fileName, line, message);
    }
    else if (!logWriter && mNonWriterQueue.count(module) < QUEUE_LIMIT)
-      mNonWriterQueue.insert(
-          module,
-          { QDateTime::currentDateTime(), threadId, QVariant::fromValue<LogLevel>(level), function, fileName, line, message });
+      mNonWriterQueue.insert(module,
+                             { QDateTime::currentDateTime(), threadId, QVariant::fromValue<LogLevel>(level), function,
+                               fileName, line, message });
 }
 
 void QLoggerManager::pause()
@@ -210,17 +221,17 @@ void QLoggerManager::resume()
    mIsStop = false;
 
    for (auto &logWriter : mModuleDest)
-       logWriter->stop(mIsStop);
+      logWriter->stop(mIsStop);
 }
 
 void QLoggerManager::overwriteLogMode(LogMode mode)
 {
-    QMutexLocker lock(&mMutex);
+   QMutexLocker lock(&mMutex);
 
-    setDefaultMode(mode);
+   setDefaultMode(mode);
 
-    for (auto &logWriter : mModuleDest)
-        logWriter->setLogMode(mode);
+   for (auto &logWriter : mModuleDest)
+      logWriter->setLogMode(mode);
 }
 
 void QLoggerManager::overwriteLogLevel(LogLevel level)
@@ -230,17 +241,17 @@ void QLoggerManager::overwriteLogLevel(LogLevel level)
    setDefaultLevel(level);
 
    for (auto &logWriter : mModuleDest)
-       logWriter->setLogLevel(level);
+      logWriter->setLogLevel(level);
 }
 
 void QLoggerManager::overwriteMaxFileSize(int maxSize)
 {
-    QMutexLocker lock(&mMutex);
+   QMutexLocker lock(&mMutex);
 
-    setDefaultMaxFileSize(maxSize);
+   setDefaultMaxFileSize(maxSize);
 
-    for (auto &logWriter : mModuleDest)
-        logWriter->setMaxFileSize(maxSize);
+   for (auto &logWriter : mModuleDest)
+      logWriter->setMaxFileSize(maxSize);
 }
 
 QLoggerManager::~QLoggerManager()
@@ -253,8 +264,11 @@ QLoggerManager::~QLoggerManager()
    for (auto dest : qAsConst(mModuleDest))
    {
       dest->closeDestination();
-      dest->deleteLater();
+      dest->wait();
    }
+
+   for (auto dest : qAsConst(mModuleDest))
+      delete dest;
 
    mModuleDest.clear();
 }
