@@ -2,6 +2,7 @@
 
 /****************************************************************************************
  ** QLogger is a library to register and print logs into a file.
+ ** Copyright (C) 2020  Francesc Martinez
  **
  ** LinkedIn: www.linkedin.com/in/cescmm/
  ** Web: www.francescmm.com
@@ -45,8 +46,10 @@ public:
     * @param mode The logging mode.
     * @param fileSuffixIfFull The filename suffix if the file is full.
     */
-   explicit QLoggerWriter(const QString &fileDestination, LogLevel level=LogLevel::Warning, const QString &fileFolderDestination=QString(),
-                          LogMode mode=LogMode::OnlyFile, LogFileDisplay fileSuffixIfFull=LogFileDisplay::DateTime, LogMessageDisplays messageOptions=LogMessageDisplay::Default);
+   explicit QLoggerWriter(const QString &fileDestination, LogLevel level = LogLevel::Warning,
+                          const QString &fileFolderDestination = QString(), LogMode mode = LogMode::OnlyFile,
+                          LogFileDisplay fileSuffixIfFull = LogFileDisplay::DateTime,
+                          LogMessageDisplays messageOptions = LogMessageDisplay::Default);
 
    /**
     * @brief Gets path and folder of the file that will store the logs.
@@ -116,8 +119,8 @@ public:
     * @param line The line of the file name that prints the log.
     * @param message The message to log.
     */
-   void enqueue(const QDateTime &date, const QString &threadId, const QString &module, LogLevel level, const QString &function,
-                const QString &fileName, int line, const QString &message);
+   void enqueue(const QDateTime &date, const QString &threadId, const QString &module, LogLevel level,
+                const QString &function, const QString &fileName, int line, const QString &message);
 
    /**
     * @brief Stops the log writer
@@ -131,11 +134,23 @@ public:
     */
    bool isStop() const { return mIsStop; }
 
+   /**
+    * @brief run Overloaded method from QThread used to wait for new messages.
+    */
    void run() override;
 
+   /**
+    * @brief closeDestination Closes the destination. This needs to be called whenever
+    */
    void closeDestination();
 
 private:
+   struct EnqueuedMessage
+   {
+      QString threadId;
+      QString message;
+   };
+
    bool mQuit = false;
    bool mIsStop = false;
    QWaitCondition mQueueNotEmpty;
@@ -144,9 +159,9 @@ private:
    LogFileDisplay mFileSuffixIfFull;
    LogMode mMode;
    LogLevel mLevel;
-   int mMaxFileSize = 1024 * 1024;  //! @note 1Mio
+   int mMaxFileSize = 1024 * 1024; //! @note 1Mio
    LogMessageDisplays mMessageOptions;
-   QVector<QPair<QString, QString>> messages;
+   QVector<EnqueuedMessage> messages;
    QMutex mutex;
 
    /**
@@ -165,7 +180,8 @@ private:
     * @param fileSuffixNumber The file suffix number.
     * @return The complete path of the duplicated file name.
     */
-   static QString generateDuplicateFilename(const QString& fileDestination, const QString& fileExtension, int fileSuffixNumber=1);
+   static QString generateDuplicateFilename(const QString &fileDestination, const QString &fileExtension,
+                                            int fileSuffixNumber = 1);
 
    /**
     * @brief Writes a message in a file. If the file is full, it truncates it and prints a first line with the
@@ -173,7 +189,7 @@ private:
     *
     * @param message Pair of values consistent on the date and the message to be log.
     */
-   void write(const QPair<QString, QString> &message);
+   void write(const EnqueuedMessage &message);
 };
 
 }
