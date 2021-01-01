@@ -58,7 +58,8 @@ public:
     * @param mode The logging mode.
     * @param fileSuffixIfFull The filename suffix if the file is full.
     * @param messageOptions Specifies what elements are displayed in one line of log message.
-    * @return Returns true if any error have been done.
+    * @param notify Writes into the logs that the destination was added.
+    * @return Returns true if sueccessful, otherwise false.
     */
    bool addDestination(const QString &fileDest, const QString &module, LogLevel level = LogLevel::Warning,
                        const QString &fileFolderDestination = QString(), LogMode mode = LogMode::OnlyFile,
@@ -77,7 +78,8 @@ public:
     * @param mode The logging mode.
     * @param fileSuffixIfFull The filename suffix if the file is full.
     * @param messageOptions Specifies what elements are displayed in one line of log message.
-    * @return Returns true if any error have been done.
+    * @param notify Writes into the logs that the destination was added.
+    * @return Returns true if sueccessful, otherwise false.
     */
    bool addDestination(const QString &fileDest, const QStringList &modules, LogLevel level = LogLevel::Warning,
                        const QString &fileFolderDestination = QString(), LogMode mode = LogMode::OnlyFile,
