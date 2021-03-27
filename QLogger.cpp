@@ -101,7 +101,7 @@ void QLoggerManager::startWriter(const QString &module, QLoggerWriter *log, LogM
    if (notify)
    {
       const auto threadId = QString("%1").arg((quintptr)QThread::currentThread(), QT_POINTER_SIZE * 2, 16, QChar('0'));
-      log->enqueue(QDateTime::currentDateTime(), threadId, module, LogLevel::Info, "", "", -1, "Adding destination!");
+      log->enqueue(QDateTime::currentDateTime(), threadId, module, LogLevel::Trace, "", "", -1, "Adding destination!");
    }
 
    if (mode != LogMode::Disabled)
