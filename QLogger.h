@@ -2,7 +2,7 @@
 
 /****************************************************************************************
  ** QLogger is a library to register and print logs into a file.
- ** Copyright (C) 2020  Francesc Martinez
+ ** Copyright (C) 2022 Francesc Martinez
  **
  ** LinkedIn: www.linkedin.com/in/cescmm/
  ** Web: www.francescmm.com
@@ -58,8 +58,7 @@ public:
     * @param mode The logging mode.
     * @param fileSuffixIfFull The filename suffix if the file is full.
     * @param messageOptions Specifies what elements are displayed in one line of log message.
-    * @param notify Writes into the logs that the destination was added.
-    * @return Returns true if sueccessful, otherwise false.
+    * @return Returns true if any error have been done.
     */
    bool addDestination(const QString &fileDest, const QString &module, LogLevel level = LogLevel::Warning,
                        const QString &fileFolderDestination = QString(), LogMode mode = LogMode::OnlyFile,
@@ -78,8 +77,7 @@ public:
     * @param mode The logging mode.
     * @param fileSuffixIfFull The filename suffix if the file is full.
     * @param messageOptions Specifies what elements are displayed in one line of log message.
-    * @param notify Writes into the logs that the destination was added.
-    * @return Returns true if sueccessful, otherwise false.
+    * @return Returns true if any error have been done.
     */
    bool addDestination(const QString &fileDest, const QStringList &modules, LogLevel level = LogLevel::Warning,
                        const QString &fileFolderDestination = QString(), LogMode mode = LogMode::OnlyFile,
@@ -121,7 +119,7 @@ public:
    void resume();
 
    /**
-    * @brief getDefaultFileDestinationFolder Gets the defaut file destination folder.
+    * @brief getDefaultFileDestinationFolder Gets the default file destination folder.
     * @return The file destination folder
     */
    QString getDefaultFileDestinationFolder() const { return mDefaultFileDestinationFolder; }
@@ -139,7 +137,7 @@ public:
    LogLevel getDefaultLevel() const { return mDefaultLevel; }
 
    /**
-    * @brief Sets default values for QLoggerWritter parameters. Usefull for multiple QLoggerWritter.
+    * @brief Sets default values for QLoggerWritter parameters. Useful for multiple QLoggerWritter.
     */
    void setDefaultFileDestinationFolder(const QString &fileDestinationFolder);
    void setDefaultFileDestination(const QString &fileDestination) { mDefaultFileDestination = fileDestination; }
@@ -170,6 +168,12 @@ public:
     */
    void overwriteMaxFileSize(int maxSize);
 
+   /**
+    * @brief moveLogsWhenClose Moves all the logs to a new folder. This will happen only on close.
+    * @param newLogsFolder The new folder that will store the logs.
+    */
+   void moveLogsWhenClose(const QString &newLogsFolder) { mNewLogsFolder = newLogsFolder; }
+
 private:
    /**
     * @brief Checks if the logger is stop
@@ -182,12 +186,12 @@ private:
    QMap<QString, QLoggerWriter *> mModuleDest;
 
    /**
-    * @brief Defines the queue of messages when no writters have been set yet.
+    * @brief Defines the queue of messages when no writers have been set yet.
     */
    QMultiMap<QString, QVector<QVariant>> mNonWriterQueue;
 
    /**
-    * @brief Default values for QLoggerWritter parameters. Usefull for multiple QLoggerWritter.
+    * @brief Default values for QLoggerWritter parameters. Useful for multiple QLoggerWritter.
     */
    QString mDefaultFileDestinationFolder;
    QString mDefaultFileDestination;
@@ -197,6 +201,7 @@ private:
    LogLevel mDefaultLevel = LogLevel::Warning;
    int mDefaultMaxFileSize = 1024 * 1024; //! @note 1Mio
    LogMessageDisplays mDefaultMessageOptions = LogMessageDisplay::Default;
+   QString mNewLogsFolder;
 
    /**
     * @brief Mutex to make the method thread-safe.

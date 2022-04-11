@@ -45,7 +45,11 @@ QLoggerWriter::QLoggerWriter(const QString &fileDestination, LogLevel level, con
    , mLevel(level)
    , mMessageOptions(messageOptions)
 {
-   mFileDestinationFolder = (fileFolderDestination.isEmpty() ? QDir::currentPath() : fileFolderDestination) + "/logs/";
+   mFileDestinationFolder = fileFolderDestination.isEmpty() ? QDir::currentPath() + "/logs/" : fileFolderDestination;
+
+   if (!mFileDestinationFolder.endsWith("/"))
+      mFileDestinationFolder.append("/");
+
    mFileDestination = mFileDestinationFolder + fileDestination;
 
    QDir dir(mFileDestinationFolder);
@@ -121,14 +125,16 @@ QString QLoggerWriter::generateDuplicateFilename(const QString &fileDestination,
    return path;
 }
 
-void QLoggerWriter::write(const EnqueuedMessage &message)
+void QLoggerWriter::write(QVector<QString> messages)
 {
    // Write data to console
-   if (mMode == LogMode::OnlyConsole || mMode == LogMode::Full)
-      qInfo() << message.message;
-
    if (mMode == LogMode::OnlyConsole)
+   {
+      for (const auto &message : messages)
+         qInfo() << message;
+
       return;
+   }
 
    // Write data to file
    QFile file(mFileDestination);
@@ -140,9 +146,15 @@ void QLoggerWriter::write(const EnqueuedMessage &message)
       QTextStream out(&file);
 
       if (!prevFilename.isEmpty())
-         out << QString("%1 - Previous log %2\n").arg(message.threadId, prevFilename);
+         out << QString("Previous log %1\n").arg(prevFilename);
 
-      out << message.message;
+      for (const auto &message : messages)
+      {
+         out << message;
+
+         if (mMode == LogMode::Full)
+            qInfo() << message;
+      }
 
       file.close();
    }
@@ -171,9 +183,10 @@ void QLoggerWriter::enqueue(const QDateTime &date, const QString &threadId, cons
    QString text;
    if (mMessageOptions.testFlag(LogMessageDisplay::Default))
    {
-      text
-          = QString("[%1][%2][%3][%4]%5 %6")
-                .arg(levelToText(level), module, date.toString("dd-MM-yyyy hh:mm:ss.zzz"), threadId, fileLine, message);
+      text = QString("[%1][%2][%3][%4]%5 %6")
+                 .arg(levelToText(level), module)
+                 .arg(date.toSecsSinceEpoch())
+                 .arg(threadId, fileLine, message);
    }
    else
    {
@@ -184,7 +197,7 @@ void QLoggerWriter::enqueue(const QDateTime &date, const QString &threadId, cons
          text.append(QString("[%1]").arg(module));
 
       if (mMessageOptions.testFlag(LogMessageDisplay::DateTime))
-         text.append(QString("[%1]").arg(date.toString("dd-MM-yyyy hh:mm:ss.zzz")));
+         text.append(QString("[%1]").arg(date.toSecsSinceEpoch()));
 
       if (mMessageOptions.testFlag(LogMessageDisplay::ThreadId))
          text.append(QString("[%1]").arg(threadId));
@@ -207,7 +220,7 @@ void QLoggerWriter::enqueue(const QDateTime &date, const QString &threadId, cons
 
    text.append(QString::fromLatin1("\n"));
 
-   messages.append({ threadId, text });
+   mMessages.append(text);
 
    if (!mIsStop)
       mQueueNotEmpty.wakeAll();
@@ -223,17 +236,14 @@ void QLoggerWriter::run()
 
    while (!mQuit)
    {
-      decltype(messages) copy;
+      decltype(mMessages) copy;
 
       {
          QMutexLocker locker(&mutex);
-         std::swap(copy, messages);
+         std::swap(copy, mMessages);
       }
 
-      for (const auto &msg : qAsConst(copy))
-         write(msg);
-
-      copy.clear();
+      write(std::move(copy));
 
       if (!mQuit)
       {

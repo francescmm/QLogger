@@ -2,7 +2,7 @@
 
 /****************************************************************************************
  ** QLogger is a library to register and print logs into a file.
- ** Copyright (C) 2020  Francesc Martinez
+ ** Copyright (C) 2022 Francesc Martinez
  **
  ** LinkedIn: www.linkedin.com/in/cescmm/
  ** Web: www.francescmm.com
@@ -109,7 +109,7 @@ public:
    void setMessageOptions(LogMessageDisplays messageOptions) { mMessageOptions = messageOptions; }
 
    /**
-    * @brief enqueue Enqueues a message to be written in the destiantion.
+    * @brief enqueue Enqueues a message to be written in the destination.
     * @param date The date and time of the log message.
     * @param threadId The thread where the message comes from.
     * @param module The module that writes the message.
@@ -145,12 +145,6 @@ public:
    void closeDestination();
 
 private:
-   struct EnqueuedMessage
-   {
-      QString threadId;
-      QString message;
-   };
-
    bool mQuit = false;
    bool mIsStop = false;
    QWaitCondition mQueueNotEmpty;
@@ -161,7 +155,7 @@ private:
    LogLevel mLevel;
    int mMaxFileSize = 1024 * 1024; //! @note 1Mio
    LogMessageDisplays mMessageOptions;
-   QVector<EnqueuedMessage> messages;
+   QVector<QString> mMessages;
    QMutex mutex;
 
    /**
@@ -189,7 +183,7 @@ private:
     *
     * @param message Pair of values consistent on the date and the message to be log.
     */
-   void write(const EnqueuedMessage &message);
+   void write(QVector<QString> messages);
 };
 
 }
