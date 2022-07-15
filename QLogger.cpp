@@ -7,7 +7,8 @@
 
 Q_DECLARE_METATYPE(QLogger::LogLevel)
 Q_DECLARE_METATYPE(QLogger::LogMode)
-Q_DECLARE_METATYPE(QLogger::LogFileDisplay)
+Q_DECLARE_METATYPE(QLogger::LogFileTag)
+Q_DECLARE_METATYPE(QLogger::LogFileHandling)
 Q_DECLARE_METATYPE(QLogger::LogMessageDisplay)
 
 namespace QLogger
@@ -16,27 +17,38 @@ namespace QLogger
 void QLog_(const QString &module, LogLevel level, const QString &message, const QString &function, const QString &file,
            int line)
 {
-   QLoggerManager::getInstance()->enqueueMessage(module, level, message, function, file, line);
+   QLoggerManager::getInstance().enqueueMessage(module, level, message, function, file, line);
 }
 
 static const int QUEUE_LIMIT = 100;
 
-QLoggerManager *QLoggerManager::getInstance()
+QLoggerManager &QLoggerManager::getInstance()
 {
    static QLoggerManager INSTANCE;
 
-   return &INSTANCE;
+   return INSTANCE;
+}
+
+bool QLoggerManager::hasModules() const
+{
+    return !mModuleDest.isEmpty();
+}
+
+bool QLoggerManager::hasModule(const QString& module) const
+{
+    return mModuleDest.contains(module);
 }
 
 bool QLoggerManager::addDestination(const QString &fileDest, const QString &module, LogLevel level,
-                                    const QString &fileFolderDestination, LogMode mode, LogFileDisplay fileSuffixIfFull,
+                                    const QString &fileFolderDestination, LogMode mode,
+                                    LogFileTag fileTag, LogFileHandling fileHandling,
                                     LogMessageDisplays messageOptions, bool notify)
 {
    QMutexLocker lock(&mMutex);
 
-   if (!mModuleDest.contains(module))
+   if (!hasModule(module))
    {
-      const auto log = createWriter(fileDest, level, fileFolderDestination, mode, fileSuffixIfFull, messageOptions);
+      const auto log = createWriter(fileDest, level, fileFolderDestination, mode, fileTag, fileHandling, messageOptions);
 
       mModuleDest.insert(module, log);
 
@@ -49,7 +61,8 @@ bool QLoggerManager::addDestination(const QString &fileDest, const QString &modu
 }
 
 bool QLoggerManager::addDestination(const QString &fileDest, const QStringList &modules, LogLevel level,
-                                    const QString &fileFolderDestination, LogMode mode, LogFileDisplay fileSuffixIfFull,
+                                    const QString &fileFolderDestination, LogMode mode,
+                                    LogFileTag fileTag, LogFileHandling fileHandling,
                                     LogMessageDisplays messageOptions, bool notify)
 {
    QMutexLocker lock(&mMutex);
@@ -57,9 +70,9 @@ bool QLoggerManager::addDestination(const QString &fileDest, const QStringList &
 
    for (const auto &module : modules)
    {
-      if (!mModuleDest.contains(module))
+      if (!hasModule(module))
       {
-         const auto log = createWriter(fileDest, level, fileFolderDestination, mode, fileSuffixIfFull, messageOptions);
+         const auto log = createWriter(fileDest, level, fileFolderDestination, mode, fileTag, fileHandling, messageOptions);
 
          mModuleDest.insert(module, log);
 
@@ -74,21 +87,24 @@ bool QLoggerManager::addDestination(const QString &fileDest, const QStringList &
 
 QLoggerWriter *QLoggerManager::createWriter(const QString &fileDest, LogLevel level,
                                             const QString &fileFolderDestination, LogMode mode,
-                                            LogFileDisplay fileSuffixIfFull, LogMessageDisplays messageOptions) const
+                                            LogFileTag fileTag, LogFileHandling fileHandling,
+                                            LogMessageDisplays messageOptions) const
 {
    const auto lFileDest = fileDest.isEmpty() ? mDefaultFileDestination : fileDest;
    const auto lLevel = level == LogLevel::Warning ? mDefaultLevel : level;
    const auto lFileFolderDestination = fileFolderDestination.isEmpty()
        ? mDefaultFileDestinationFolder
        : QDir::fromNativeSeparators(fileFolderDestination);
-   const auto lMode = mode == LogMode::OnlyFile ? mDefaultMode : mode;
-   const auto lFileSuffixIfFull
-       = fileSuffixIfFull == LogFileDisplay::DateTime ? mDefaultFileSuffixIfFull : fileSuffixIfFull;
+   const auto lMode = mode == LogMode::Default ? mDefaultMode : mode;
+   const auto lFileTag
+       = fileTag == LogFileTag::Default ? mDefaultFileTag : fileTag;
+   const auto lFileHandling
+       = fileHandling == LogFileHandling::Default ? mDefaultFileHandling : fileHandling;
    const auto lMessageOptions
        = messageOptions.testFlag(LogMessageDisplay::Default) ? mDefaultMessageOptions : messageOptions;
 
    const auto log
-       = new QLoggerWriter(lFileDest, lLevel, lFileFolderDestination, lMode, lFileSuffixIfFull, lMessageOptions);
+       = new QLoggerWriter(lFileDest, lLevel, lFileFolderDestination, lMode, lFileTag, lFileHandling, lMessageOptions);
 
    log->setMaxFileSize(mDefaultMaxFileSize);
    log->stop(mIsStop);

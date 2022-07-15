@@ -39,8 +39,10 @@ namespace QLogger
 {
 
 QLoggerWriter::QLoggerWriter(const QString &fileDestination, LogLevel level, const QString &fileFolderDestination,
-                             LogMode mode, LogFileDisplay fileSuffixIfFull, LogMessageDisplays messageOptions)
-   : mFileSuffixIfFull(fileSuffixIfFull)
+                             LogMode mode, LogFileTag fileTag, LogFileHandling fileHandling, LogMessageDisplays messageOptions)
+   : mDateTag(mkDateTag())
+   , mFileTag(fileTag)
+   , mFileHandling(fileHandling)
    , mMode(mode)
    , mLevel(level)
    , mMessageOptions(messageOptions)
@@ -50,16 +52,16 @@ QLoggerWriter::QLoggerWriter(const QString &fileDestination, LogLevel level, con
    if (!mFileDestinationFolder.endsWith("/"))
       mFileDestinationFolder.append("/");
 
-   mFileDestination = mFileDestinationFolder + fileDestination;
+   mBareFileDestination = mFileDestinationFolder + fileDestination;
 
    QDir dir(mFileDestinationFolder);
    if (fileDestination.isEmpty())
    {
-      mFileDestination = dir.filePath(QString::fromLatin1("%1.log").arg(
+      mBareFileDestination = dir.filePath(QString::fromLatin1("%1.log").arg(
           QDateTime::currentDateTime().date().toString(QString::fromLatin1("yyyy-MM-dd"))));
    }
    else if (!fileDestination.contains(QLatin1Char('.')))
-      mFileDestination.append(QString::fromLatin1(".log"));
+      mBareFileDestination.append(QString::fromLatin1(".log"));
 
    if (mMode == LogMode::Full || mMode == LogMode::OnlyFile)
       dir.mkpath(QStringLiteral("."));
@@ -79,28 +81,41 @@ void QLoggerWriter::setLogMode(LogMode mode)
       start();
 }
 
+QString QLoggerWriter::mkDateTag() const
+{
+   return QDateTime::currentDateTime().toString("dd_MM_yy__hh_mm_ss");
+}
+
+QString QLoggerWriter::getTaggedFileDestination(const QString& dateTag) const
+{
+   const auto baseDestination = mBareFileDestination.left(mBareFileDestination.lastIndexOf('.'));
+   const auto fileExtension = mBareFileDestination.mid(mBareFileDestination.lastIndexOf('.') + 1);
+   
+   if (mFileTag == LogFileTag::DateTime)
+      return QString("%1_%2.%3")
+              .arg(baseDestination, dateTag, fileExtension);
+   else
+      return generateDuplicateFilename(baseDestination, fileExtension);
+}
+
+QString QLoggerWriter::getFileDestination() const
+{
+   return 
+    mFileHandling == LogFileHandling::SingleTagged 
+    ? getTaggedFileDestination(mDateTag)
+    : mBareFileDestination;
+}   
+
 QString QLoggerWriter::renameFileIfFull()
 {
-   QFile file(mFileDestination);
+   QFile file(getFileDestination());
 
    // Rename file if it's full
    if (file.size() >= mMaxFileSize)
    {
-      QString newName;
+      QString newName = getTaggedFileDestination(mkDateTag());
 
-      const auto fileDestination = mFileDestination.left(mFileDestination.lastIndexOf('.'));
-      const auto fileExtension = mFileDestination.mid(mFileDestination.lastIndexOf('.') + 1);
-
-      if (mFileSuffixIfFull == LogFileDisplay::DateTime)
-      {
-         newName
-             = QString("%1_%2.%3")
-                   .arg(fileDestination, QDateTime::currentDateTime().toString("dd_MM_yy__hh_mm_ss"), fileExtension);
-      }
-      else
-         newName = generateDuplicateFilename(fileDestination, fileExtension);
-
-      const auto renamed = file.rename(mFileDestination, newName);
+      const auto renamed = file.rename(getFileDestination(), newName);
 
       return renamed ? newName : QString();
    }
@@ -131,15 +146,17 @@ void QLoggerWriter::write(QVector<QString> messages)
    if (mMode == LogMode::OnlyConsole)
    {
       for (const auto &message : messages)
-         qInfo() << message;
+         qInfo().noquote().nospace() << message;
 
       return;
    }
 
    // Write data to file
-   QFile file(mFileDestination);
-
-   const auto prevFilename = renameFileIfFull();
+   QFile file(getFileDestination());
+   
+   QString prevFilename;
+   if (mFileHandling == LogFileHandling::Split) 
+       prevFilename = renameFileIfFull();
 
    if (file.open(QIODevice::ReadWrite | QIODevice::Text | QIODevice::Append))
    {
@@ -150,10 +167,10 @@ void QLoggerWriter::write(QVector<QString> messages)
 
       for (const auto &message : messages)
       {
-         out << message;
+         out << message << Qt::endl;
 
          if (mMode == LogMode::Full)
-            qInfo() << message;
+            qInfo().noquote().nospace() << message;
       }
 
       file.close();
@@ -217,8 +234,6 @@ void QLoggerWriter::enqueue(const QDateTime &date, const QString &threadId, cons
             text.append(QString(" %1").arg(message));
       }
    }
-
-   text.append(QString::fromLatin1("\n"));
 
    mMessages.append(text);
 

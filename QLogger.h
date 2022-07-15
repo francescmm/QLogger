@@ -22,9 +22,9 @@
  ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ***************************************************************************************/
 
-#include <QLoggerLevel.h>
+#include "QLoggerLevel.h"
 
-#include <QMutex>
+#include <QRecursiveMutex>
 #include <QMap>
 #include <QVariant>
 
@@ -43,10 +43,13 @@ public:
     * @brief Gets an instance to the QLoggerManager.
     * @return A pointer to the instance.
     */
-   static QLoggerManager *getInstance();
+   static QLoggerManager &getInstance();
+
+   bool hasModules() const;
+   bool hasModule(const QString &module) const;
 
    /**
-    * @brief This method creates a QLoogerWriter that stores the name of the file and the log
+    * @brief This method creates a QLoggerWriter that stores the name of the file and the log
     * level assigned to it. Here is added to the map the different modules assigned to each
     * log file. The method returns <em>false</em> if a module is configured to be stored in
     * more than one file.
@@ -56,16 +59,18 @@ public:
     * @param level The maximum level allowed.
     * @param fileFolderDestination The complete folder destination.
     * @param mode The logging mode.
-    * @param fileSuffixIfFull The filename suffix if the file is full.
+    * @param fileTag The file tag.
+    * @param fileHandling file handling modes
     * @param messageOptions Specifies what elements are displayed in one line of log message.
     * @return Returns true if any error have been done.
     */
    bool addDestination(const QString &fileDest, const QString &module, LogLevel level = LogLevel::Warning,
-                       const QString &fileFolderDestination = QString(), LogMode mode = LogMode::OnlyFile,
-                       LogFileDisplay fileSuffixIfFull = LogFileDisplay::DateTime,
+                       const QString &fileFolderDestination = QString(), LogMode mode = LogMode::Default,
+                       LogFileTag fileTag = LogFileTag::Default,
+                       LogFileHandling fileHandling = LogFileHandling::Default, 
                        LogMessageDisplays messageOptions = LogMessageDisplay::Default, bool notify = true);
    /**
-    * @brief This method creates a QLoogerWriter that stores the name of the file and the log
+    * @brief This method creates a QLoggerWriter that stores the name of the file and the log
     * level assigned to it. Here is added to the map the different modules assigned to each
     * log file. The method returns <em>false</em> if a module is configured to be stored in
     * more than one file.
@@ -75,13 +80,15 @@ public:
     * @param level The maximum level allowed.
     * @param fileFolderDestination The complete folder destination.
     * @param mode The logging mode.
-    * @param fileSuffixIfFull The filename suffix if the file is full.
+    * @param fileTag The file tag.
+    * @param fileHandling file handling modes
     * @param messageOptions Specifies what elements are displayed in one line of log message.
     * @return Returns true if any error have been done.
     */
    bool addDestination(const QString &fileDest, const QStringList &modules, LogLevel level = LogLevel::Warning,
-                       const QString &fileFolderDestination = QString(), LogMode mode = LogMode::OnlyFile,
-                       LogFileDisplay fileSuffixIfFull = LogFileDisplay::DateTime,
+                       const QString &fileFolderDestination = QString(), LogMode mode = LogMode::Default,
+                       LogFileTag fileTag = LogFileTag::Default,
+                       LogFileHandling fileHandling = LogFileHandling::Default,  
                        LogMessageDisplays messageOptions = LogMessageDisplay::Default, bool notify = true);
    /**
     * @brief Clears old log files from the current storage folder.
@@ -141,7 +148,8 @@ public:
     */
    void setDefaultFileDestinationFolder(const QString &fileDestinationFolder);
    void setDefaultFileDestination(const QString &fileDestination) { mDefaultFileDestination = fileDestination; }
-   void setDefaultFileSuffixIfFull(LogFileDisplay fileSuffixIfFull) { mDefaultFileSuffixIfFull = fileSuffixIfFull; }
+   void setDefaultFileTag(LogFileTag fileTag) { mDefaultFileTag = fileTag; }
+   void setDefaultFileHandling(LogFileHandling fileHandling) { mDefaultFileHandling = fileHandling; }
 
    void setDefaultLevel(LogLevel level) { mDefaultLevel = level; }
    void setDefaultMode(LogMode mode) { mDefaultMode = mode; }
@@ -195,7 +203,8 @@ private:
     */
    QString mDefaultFileDestinationFolder;
    QString mDefaultFileDestination;
-   LogFileDisplay mDefaultFileSuffixIfFull = LogFileDisplay::DateTime;
+   LogFileTag mDefaultFileTag = LogFileTag::DateTime;
+   LogFileHandling mDefaultFileHandling = LogFileHandling::Split;
 
    LogMode mDefaultMode = LogMode::OnlyFile;
    LogLevel mDefaultLevel = LogLevel::Warning;
@@ -206,7 +215,7 @@ private:
    /**
     * @brief Mutex to make the method thread-safe.
     */
-   QMutex mMutex { QMutex::Recursive };
+   QRecursiveMutex mMutex;
 
    /**
     * @brief Default builder of the class. It starts the thread.
@@ -224,12 +233,14 @@ private:
     * @param level The maximum level allowed.
     * @param fileFolderDestination The complete folder destination.
     * @param mode The logging mode.
-    * @param fileSuffixIfFull The filename suffix if the file is full.
+    * @param fileTag The file tag.
+    * @param fileHandling File handling modes
     * @param messageOptions Specifies what elements are displayed in one line of log message.
     * @return the newly created QLoggerWriter instance.
     */
    QLoggerWriter *createWriter(const QString &fileDest, LogLevel level, const QString &fileFolderDestination,
-                               LogMode mode, LogFileDisplay fileSuffixIfFull, LogMessageDisplays messageOptions) const;
+                               LogMode mode, LogFileTag fileTag, LogFileHandling fileHandling,
+                               LogMessageDisplays messageOptions) const;
 
    void startWriter(const QString &module, QLoggerWriter *log, LogMode mode, bool notify);
 

@@ -22,7 +22,7 @@
  ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ***************************************************************************************/
 
-#include <QLoggerLevel.h>
+#include "QLoggerLevel.h"
 
 #include <QThread>
 #include <QWaitCondition>
@@ -44,21 +44,25 @@ public:
     * @param level The maximum level that is allowed.
     * @param fileFolderDestination The complete folder destination.
     * @param mode The logging mode.
-    * @param fileSuffixIfFull The filename suffix if the file is full.
+    * @param fileTag The file tag.
+    * @param fileHandling file handling modes
+    * @param messageOptions Specifies what elements are displayed in one line of log message.
     */
    explicit QLoggerWriter(const QString &fileDestination, LogLevel level = LogLevel::Warning,
-                          const QString &fileFolderDestination = QString(), LogMode mode = LogMode::OnlyFile,
-                          LogFileDisplay fileSuffixIfFull = LogFileDisplay::DateTime,
+                          const QString &fileFolderDestination = QString(), LogMode mode = LogMode::Default,
+                          LogFileTag fileTag = LogFileTag::Default,
+                          LogFileHandling fileHandling = LogFileHandling::Default,
                           LogMessageDisplays messageOptions = LogMessageDisplay::Default);
 
    /**
     * @brief Gets path and folder of the file that will store the logs.
     */
    QString getFileDestinationFolder() const { return mFileDestinationFolder; }
+
    /**
     * @brief Path and name of the file that will store the logs.
     */
-   QString getFileDestination() const { return mFileDestination; }
+   QString getFileDestination() const;
 
    /**
     * @brief Gets the current logging mode.
@@ -149,14 +153,26 @@ private:
    bool mIsStop = false;
    QWaitCondition mQueueNotEmpty;
    QString mFileDestinationFolder;
-   QString mFileDestination;
-   LogFileDisplay mFileSuffixIfFull;
+   QString mBareFileDestination;
+   QString mDateTag; 
+   LogFileTag mFileTag;
+   LogFileHandling mFileHandling;
    LogMode mMode;
    LogLevel mLevel;
    int mMaxFileSize = 1024 * 1024; //! @note 1Mio
    LogMessageDisplays mMessageOptions;
    QVector<QString> mMessages;
    QMutex mutex;
+
+   /**
+    * @brief generates a date tag
+    */
+   QString mkDateTag() const;
+
+   /**
+    * @brief Path and name of the file extended with the tag.
+    */
+   QString getTaggedFileDestination(const QString& dateTag) const;
 
    /**
     * @brief renameFileIfFull Truncates the log file in two. Keeps the filename for the new one and renames the old one

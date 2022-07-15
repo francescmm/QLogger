@@ -49,16 +49,29 @@ enum class LogMode
     Disabled = 0,
     OnlyConsole,
     OnlyFile,
-    Full
+    Full,
+    Default
 };
 
 /**
- * @brief The LogFileDisplay enum class defines which elements are written in the log file name.
+ * @brief The LogFileTag enum class defines the additional tag for the log file name.
  */
-enum class LogFileDisplay
+enum class LogFileTag
 {
     DateTime,
-    Number
+    Number,
+    Default
+};
+
+/**
+ * @brief The LogFileHandling enum class defines how the logfile is handled
+ */
+enum class LogFileHandling
+{
+    Single,        // single file, with original name
+    SingleTagged,  // single file, with original name plus a tag according to LogFileTag
+    Split,         // keep original name but split on predefined file size with tag according to LogFileTag 
+    Default
 };
 
 /**
