@@ -206,7 +206,7 @@ private:
    /**
     * @brief Mutex to make the method thread-safe.
     */
-   QMutex mMutex { QMutex::Recursive };
+   QRecursiveMutex mMutex;
 
    /**
     * @brief Default builder of the class. It starts the thread.
