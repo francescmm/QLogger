@@ -21,8 +21,13 @@
  ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ***************************************************************************************/
 
-#include <QFlag>
+#include <QtVersionChecks>
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QFlags>
+#else
+#include <QFlag>
+#endif
 
 namespace QLogger
 {
@@ -79,6 +84,7 @@ enum class LogMessageDisplay : unsigned int
     Default2      = LogLevel|ModuleName|DateTime|ThreadId|File|Function|Message,
     Full          = 0xFF
 };
+
 Q_DECLARE_FLAGS(LogMessageDisplays, LogMessageDisplay)
 Q_DECLARE_OPERATORS_FOR_FLAGS(LogMessageDisplays)
 
