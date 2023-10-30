@@ -21,17 +21,14 @@
  ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  ***************************************************************************************/
 
-#include <QtVersionChecks>
+#include <QtGlobal>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-#include <QFlags>
-#else
-#include <QFlag>
+#   include <QFlags>
 #endif
 
 namespace QLogger
 {
-
 
 /**
  * @brief The LogLevel enum class defines the level of the log message.
@@ -51,10 +48,10 @@ enum class LogLevel
  */
 enum class LogMode
 {
-    Disabled = 0,
-    OnlyConsole,
-    OnlyFile,
-    Full
+   Disabled = 0,
+   OnlyConsole,
+   OnlyFile,
+   Full
 };
 
 /**
@@ -62,8 +59,8 @@ enum class LogMode
  */
 enum class LogFileDisplay
 {
-    DateTime,
-    Number
+   DateTime,
+   Number
 };
 
 /**
@@ -71,22 +68,21 @@ enum class LogFileDisplay
  */
 enum class LogMessageDisplay : unsigned int
 {
-    LogLevel      = 1<<0,
-    ModuleName    = 1<<1,
-    DateTime      = 1<<2,
-    ThreadId      = 1<<3,
-    Function      = 1<<4,
-    File          = 1<<5,
-    Line          = 1<<6,
-    Message       = 1<<7,
+   LogLevel = 1 << 0,
+   ModuleName = 1 << 1,
+   DateTime = 1 << 2,
+   ThreadId = 1 << 3,
+   Function = 1 << 4,
+   File = 1 << 5,
+   Line = 1 << 6,
+   Message = 1 << 7,
 
-    Default       = LogLevel|ModuleName|DateTime|ThreadId|File|Line|Message,
-    Default2      = LogLevel|ModuleName|DateTime|ThreadId|File|Function|Message,
-    Full          = 0xFF
+   Default = LogLevel | ModuleName | DateTime | ThreadId | File | Line | Message,
+   Default2 = LogLevel | ModuleName | DateTime | ThreadId | File | Function | Message,
+   Full = 0xFF
 };
 
 Q_DECLARE_FLAGS(LogMessageDisplays, LogMessageDisplay)
 Q_DECLARE_OPERATORS_FOR_FLAGS(LogMessageDisplays)
-
 
 }
