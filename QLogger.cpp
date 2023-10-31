@@ -252,7 +252,7 @@ QLoggerManager::~QLoggerManager()
 
    QVector<QString> oldFiles;
 
-   for (auto dest : qAsConst(mModuleDest))
+   for (auto dest : std::as_const(mModuleDest))
    {
       dest->closeDestination();
       dest->wait();
@@ -260,7 +260,7 @@ QLoggerManager::~QLoggerManager()
       oldFiles.append(dest->getFileDestinationFolder());
    }
 
-   for (auto dest : qAsConst(mModuleDest))
+   for (auto dest : std::as_const(mModuleDest))
       delete dest;
 
    mModuleDest.clear();
@@ -273,7 +273,7 @@ QLoggerManager::~QLoggerManager()
 
          auto entryList = dir.entryList(QDir::Files | QDir::System | QDir::Hidden);
 
-         for (const auto &filePath : qAsConst(entryList))
+         for (const auto &filePath : std::as_const(entryList))
          {
             auto destination = mNewLogsFolder;
             if (!destination.endsWith("/"))
